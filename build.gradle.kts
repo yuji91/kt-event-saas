@@ -21,6 +21,7 @@ repositories {
 extra["springAiVersion"] = "1.0.0-M7"
 
 dependencies {
+	implementation("org.springframework.boot:spring-boot-starter-webflux")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.springframework.ai:spring-ai-starter-model-openai")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
@@ -50,4 +51,17 @@ kotlin {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+
+tasks.named<org.springframework.boot.gradle.tasks.bundling.BootBuildImage>("bootBuildImage") {
+	imageName.set("${project.group}/${rootProject.name}:${project.version}")
+
+	environment.set(mapOf(
+		"BP_JVM_VERSION" to "21.*"
+	))
+
+	tags.set(setOf("${project.group}/${rootProject.name}:latest"))
+
+	builder.set("paketobuildpacks/builder-jammy-base:latest")
+	runImage.set("paketobuildpacks/run-jammy-base:latest")
 }
