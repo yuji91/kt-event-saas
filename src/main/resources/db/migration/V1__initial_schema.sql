@@ -40,6 +40,7 @@ CREATE INDEX idx_events_tenant_time ON events (tenant_id, starts_at);
 
 CREATE TABLE ticket_types (
                               id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                              tenant_id     UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
                               event_id        UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
                               name            TEXT NOT NULL,
                               price_cents     INT  NOT NULL CHECK (price_cents >= 0),
@@ -50,6 +51,7 @@ CREATE TABLE ticket_types (
 
 CREATE TABLE tickets (
                          id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                         tenant_id     UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
                          ticket_type_id UUID NOT NULL REFERENCES ticket_types(id) ON DELETE CASCADE,
                          purchaser_id   UUID REFERENCES users(id),
                          purchased_at   TIMESTAMPTZ,
