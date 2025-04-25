@@ -21,6 +21,7 @@ repositories {
 extra["springAiVersion"] = "1.0.0-M7"
 
 dependencies {
+	implementation("org.springframework.boot:spring-boot-starter-webflux")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.springframework.ai:spring-ai-starter-model-openai")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
