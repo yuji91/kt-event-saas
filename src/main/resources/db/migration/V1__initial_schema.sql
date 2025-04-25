@@ -7,13 +7,13 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;      -- crypt() など将来利用可
    テナント境界
    ========================================================= */
 CREATE TABLE tenants (
-                         id          UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+                         id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
                          name        TEXT NOT NULL UNIQUE,
                          created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE users (
-                       id         UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+                       id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
                        tenant_id  UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
                        email      TEXT NOT NULL,
                        role       TEXT NOT NULL,                    -- 'OWNER' | 'ADMIN' | 'MEMBER'
@@ -25,7 +25,7 @@ CREATE TABLE users (
    イベントとチケット
    ========================================================= */
 CREATE TABLE events (
-                        id            UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+                        id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
                         tenant_id     UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
                         title         TEXT NOT NULL,
                         venue         TEXT,
@@ -39,7 +39,7 @@ CREATE TABLE events (
 CREATE INDEX idx_events_tenant_time ON events (tenant_id, starts_at);
 
 CREATE TABLE ticket_types (
-                              id              UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+                              id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
                               event_id        UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
                               name            TEXT NOT NULL,
                               price_cents     INT  NOT NULL CHECK (price_cents >= 0),
@@ -49,7 +49,7 @@ CREATE TABLE ticket_types (
 );
 
 CREATE TABLE tickets (
-                         id           UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+                         id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
                          ticket_type_id UUID NOT NULL REFERENCES ticket_types(id) ON DELETE CASCADE,
                          purchaser_id   UUID REFERENCES users(id),
                          purchased_at   TIMESTAMPTZ,
