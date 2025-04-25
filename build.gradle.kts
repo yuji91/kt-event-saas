@@ -52,3 +52,16 @@ kotlin {
 tasks.withType<Test> {
 	useJUnitPlatform()
 }
+
+tasks.named<org.springframework.boot.gradle.tasks.bundling.BootBuildImage>("bootBuildImage") {
+	imageName.set("${project.group}/${rootProject.name}:${project.version}")
+
+	environment.set(mapOf(
+		"BP_JVM_VERSION" to "21.*"
+	))
+
+	tags.set(setOf("${project.group}/${rootProject.name}:latest"))
+
+	builder.set("paketobuildpacks/builder-jammy-base:latest")
+	runImage.set("paketobuildpacks/run-jammy-base:latest")
+}
