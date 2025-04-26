@@ -9,7 +9,8 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;      -- crypt() など将来利用可
 CREATE TABLE tenants (
                          id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
                          name        TEXT NOT NULL UNIQUE,
-                         created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                         created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                         updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE users (
@@ -18,6 +19,7 @@ CREATE TABLE users (
                        email      TEXT NOT NULL,
                        role       TEXT NOT NULL,                    -- 'OWNER' | 'ADMIN' | 'MEMBER'
                        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                       updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                        UNIQUE (tenant_id, email)
 );
 
@@ -33,6 +35,7 @@ CREATE TABLE events (
                         ends_at       TIMESTAMPTZ NOT NULL,
                         status        TEXT NOT NULL DEFAULT 'DRAFT',           -- enum は後続マイグレーションで
                         created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                        updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                         UNIQUE (tenant_id, title, starts_at)
 );
 
@@ -46,6 +49,8 @@ CREATE TABLE ticket_types (
                               price_cents     INT  NOT NULL CHECK (price_cents >= 0),
                               quantity_total  INT  NOT NULL CHECK (quantity_total > 0),
                               quantity_sold   INT  NOT NULL DEFAULT 0,
+                              created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                              updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                               UNIQUE (event_id, name)
 );
 
@@ -55,6 +60,8 @@ CREATE TABLE tickets (
                          ticket_type_id UUID NOT NULL REFERENCES ticket_types(id) ON DELETE CASCADE,
                          purchaser_id   UUID REFERENCES users(id),
                          purchased_at   TIMESTAMPTZ,
+                         created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                         updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                          CONSTRAINT chk_purchase_consistency
                              CHECK ((purchaser_id IS NULL) = (purchased_at IS NULL))
 );
