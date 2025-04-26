@@ -107,3 +107,18 @@ FOR tbl IN SELECT unnest(ARRAY['users','events','ticket_types','tickets'])
          USING (tenant_id = current_setting(''app.tenant_id'')::uuid);', tbl);
 END LOOP;
 END $$;
+
+/* =========================================================
+   テーブル権限付与 (GRANT)
+   ========================================================= */
+
+-- 既存テーブルへの権限
+GRANT SELECT ON tenants TO secret;
+GRANT SELECT, INSERT, UPDATE, DELETE ON users TO secret;
+GRANT SELECT, INSERT, UPDATE, DELETE ON events TO secret;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ticket_types TO secret;
+GRANT SELECT, INSERT, UPDATE, DELETE ON tickets TO secret;
+
+-- 今後作成されるテーブルにも自動で権限付与
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+    GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO secret;
