@@ -1,5 +1,7 @@
 -- V1__initial_schema.sql
--- ① 汎用拡張
+/* =========================================================
+   汎用拡張
+   ========================================================= */
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";   -- gen_random_uuid() が使えない RDS 用
 CREATE EXTENSION IF NOT EXISTS pgcrypto;      -- crypt() など将来利用可
 
@@ -32,14 +34,13 @@ CREATE TABLE events (
                         title         TEXT NOT NULL,
                         venue         TEXT,
                         starts_at     TIMESTAMPTZ NOT NULL,
-                        ends_at       TIMESTAMPTZ NOT NULL,
+                        ends_at       TIMESTAMPTZ NOT NULL CHECK (ends_at > starts_at),
                         status        TEXT NOT NULL DEFAULT 'DRAFT',           -- enum は後続マイグレーションで
                         created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                         updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                         UNIQUE (tenant_id, title, starts_at)
 );
 
-CREATE INDEX idx_events_tenant_time ON events (tenant_id, starts_at);
 
 CREATE TABLE ticket_types (
                               id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -65,10 +66,25 @@ CREATE TABLE tickets (
                          CONSTRAINT chk_purchase_consistency
                              CHECK ((purchaser_id IS NULL) = (purchased_at IS NULL))
 );
-CREATE INDEX idx_tickets_purchaser ON tickets (purchaser_id);
 
 /* =========================================================
-   行レベルセキュリティでマルチテナント分離
+   インデックス定義 (CREATE INDEX)
+   ========================================================= */
+
+-- テナントID系インデックス [マルチテナントRLS高速化用]
+CREATE INDEX idx_users_tenant ON users (tenant_id);
+CREATE INDEX idx_events_tenant_time ON events (tenant_id, starts_at);
+  -- テナント内での時系列検索を想定 (例: upcoming events一覧などのパフォーマンス改善)
+CREATE INDEX idx_ticket_types_tenant ON ticket_types (tenant_id);
+CREATE INDEX idx_tickets_tenant ON tickets (tenant_id);
+
+-- 関連テーブル系インデックス [外部キーJOIN高速化用]
+CREATE INDEX idx_ticket_types_event ON ticket_types (event_id);
+CREATE INDEX idx_tickets_purchaser ON tickets (purchaser_id);
+CREATE INDEX idx_tickets_ticket_type ON tickets (ticket_type_id);
+
+/* =========================================================
+   行レベルセキュリティでマルチテナント分離 (RLS + POLICY)
    ========================================================= */
 ALTER TABLE tenants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE users   ENABLE ROW LEVEL SECURITY;
