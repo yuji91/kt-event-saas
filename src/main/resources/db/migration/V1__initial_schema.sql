@@ -4,6 +4,7 @@
    ========================================================= */
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";   -- gen_random_uuid() が使えない RDS 用
 CREATE EXTENSION IF NOT EXISTS pgcrypto;      -- crypt() など将来利用可
+CREATE EXTENSION IF NOT EXISTS "citext";      -- email用 (大文字小文字を無視できるTEXT)
 
 /* =========================================================
    テナント境界
@@ -18,7 +19,7 @@ CREATE TABLE tenants (
 CREATE TABLE users (
                        id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
                        tenant_id  UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
-                       email      TEXT NOT NULL,
+                       email      CITEXT NOT NULL,
                        role       TEXT NOT NULL,                    -- 'OWNER' | 'ADMIN' | 'MEMBER'
                        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                        updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
