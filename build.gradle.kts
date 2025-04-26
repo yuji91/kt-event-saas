@@ -60,6 +60,7 @@ flyway {
 	user = System.getenv("FLYWAY_USER")
 	password = System.getenv("FLYWAY_PASS")
 	locations = arrayOf("filesystem:src/main/resources/db/migration")
+	cleanDisabled = false
 }
 
 kotlin {
