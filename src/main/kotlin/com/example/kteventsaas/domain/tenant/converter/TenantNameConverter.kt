@@ -8,10 +8,10 @@ import jakarta.persistence.Converter
 class TenantNameConverter : AttributeConverter<TenantName, String> {
 
     override fun convertToDatabaseColumn(attribute: TenantName): String? {
-        return attribute?.value
+        return attribute.value
     }
 
-    override fun convertToEntityAttribute(dbData: String): TenantName? {
-        return dbData?.let { TenantName(it) }
+    override fun convertToEntityAttribute(dbData: String): TenantName {
+        return TenantName(dbData)
     }
 }
