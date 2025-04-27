@@ -85,3 +85,16 @@ tasks.named<org.springframework.boot.gradle.tasks.bundling.BootBuildImage>("boot
 	builder.set("paketobuildpacks/builder-jammy-base:latest")
 	runImage.set("paketobuildpacks/run-jammy-base:latest")
 }
+
+// --- テスト時のログ出力設定（詳細ログを出力するための設定） ---
+// ./gradlew build が失敗した場合に、有効化して調査する
+
+// tasks.withType<Test> {
+// 	testLogging {
+// 		events("passed", "failed", "skipped", "standard_out", "standard_error")
+// 		exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+// 		showExceptions = true
+// 		showCauses = true
+// 		showStackTraces = true
+// 	}
+// }
