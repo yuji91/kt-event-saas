@@ -36,6 +36,10 @@ dependencies {
 	implementation("org.springframework.ai:spring-ai-starter-model-openai")
 	implementation("org.postgresql:postgresql:42.7.3")
 	implementation("org.flywaydb:flyway-database-postgresql:11.8.0")
+	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+	implementation("jakarta.persistence:jakarta.persistence-api:3.1.0")
+	implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.6")
+	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	developmentOnly("org.springframework.boot:spring-boot-docker-compose")
 	runtimeOnly("org.postgresql:postgresql")
@@ -85,3 +89,16 @@ tasks.named<org.springframework.boot.gradle.tasks.bundling.BootBuildImage>("boot
 	builder.set("paketobuildpacks/builder-jammy-base:latest")
 	runImage.set("paketobuildpacks/run-jammy-base:latest")
 }
+
+// --- テスト時のログ出力設定（詳細ログを出力するための設定） ---
+// ./gradlew build が失敗した場合に、有効化して調査する
+
+// tasks.withType<Test> {
+// 	testLogging {
+// 		events("passed", "failed", "skipped", "standard_out", "standard_error")
+// 		exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+// 		showExceptions = true
+// 		showCauses = true
+// 		showStackTraces = true
+// 	}
+// }
