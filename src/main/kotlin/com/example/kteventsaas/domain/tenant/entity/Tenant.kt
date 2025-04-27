@@ -18,4 +18,7 @@ open class Tenant(
     @Convert(converter = TenantNameConverter::class)
     var name: TenantName
 
-) : Auditable()
+) : Auditable(){
+    // TODO: kotlin-jpa プラグイン導入でコンストラクタ定義が不要になるかもしれない
+    protected constructor() : this(null, TenantName("default"))
+}
