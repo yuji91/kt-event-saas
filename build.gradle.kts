@@ -38,6 +38,8 @@ dependencies {
 	implementation("org.flywaydb:flyway-database-postgresql:11.8.0")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("jakarta.persistence:jakarta.persistence-api:3.1.0")
+	implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.6")
+	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	developmentOnly("org.springframework.boot:spring-boot-docker-compose")
 	runtimeOnly("org.postgresql:postgresql")
