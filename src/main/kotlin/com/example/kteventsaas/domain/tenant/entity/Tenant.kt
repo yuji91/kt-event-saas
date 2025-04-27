@@ -1,8 +1,10 @@
 package com.example.kteventsaas.domain.tenant.entity
 
+import com.example.kteventsaas.domain.common.entity.Auditable
+import com.example.kteventsaas.domain.tenant.valueobject.TenantName
+import com.example.kteventsaas.domain.tenant.converter.TenantNameConverter
 import jakarta.persistence.*
 import java.util.UUID
-import com.example.kteventsaas.domain.common.entity.Auditable
 
 @Entity
 @Table(name = "tenants")
@@ -13,6 +15,7 @@ open class Tenant(
     val id: UUID? = null,
 
     @Column(nullable = false, unique = true)
-    var name: String
+    @Convert(converter = TenantNameConverter::class)
+    var name: TenantName
 
 ) : Auditable()
