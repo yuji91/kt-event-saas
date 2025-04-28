@@ -13,7 +13,8 @@ CREATE TABLE tenants (
                          id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
                          name        TEXT NOT NULL UNIQUE,
                          created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-                         updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                         updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                         version     BIGINT NOT NULL DEFAULT 0
 );
 
 CREATE TABLE users (
@@ -23,6 +24,7 @@ CREATE TABLE users (
                        role       TEXT NOT NULL,                    -- 'OWNER' | 'ADMIN' | 'MEMBER'
                        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                        updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                       version     BIGINT NOT NULL DEFAULT 0,
                        UNIQUE (tenant_id, email)
 );
 
@@ -39,6 +41,7 @@ CREATE TABLE events (
                         status        TEXT NOT NULL DEFAULT 'DRAFT',           -- enum は後続マイグレーションで
                         created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                         updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                        version     BIGINT NOT NULL DEFAULT 0,
                         UNIQUE (tenant_id, title, starts_at)
 );
 
@@ -53,6 +56,7 @@ CREATE TABLE ticket_types (
                               quantity_sold   INT  NOT NULL DEFAULT 0,
                               created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                               updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                              version     BIGINT NOT NULL DEFAULT 0,
                               UNIQUE (event_id, name)
 );
 
@@ -64,6 +68,7 @@ CREATE TABLE tickets (
                          purchased_at   TIMESTAMPTZ,
                          created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                          updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                         version     BIGINT NOT NULL DEFAULT 0,
                          CONSTRAINT chk_purchase_consistency
                              CHECK ((purchaser_id IS NULL) = (purchased_at IS NULL))
 );
