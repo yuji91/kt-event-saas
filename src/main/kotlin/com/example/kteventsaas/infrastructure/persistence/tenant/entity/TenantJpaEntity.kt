@@ -20,5 +20,5 @@ class TenantJpaEntity(
 
 ) : AuditableJpa(){
     /** Hibernate 用 no-arg CTOR */
-    protected constructor() : this(null, TenantName(""))
+    protected constructor() : this(null, TenantName("require(value.isNotBlank())"))
 }
