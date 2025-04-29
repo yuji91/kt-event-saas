@@ -1,6 +1,7 @@
 package com.example.kteventsaas.domain.tenant.repository
 
 import com.example.kteventsaas.domain.tenant.entity.Tenant
+import com.example.kteventsaas.domain.tenant.valueobject.TenantName
 import java.util.UUID
 
 interface TenantRepository {
@@ -9,7 +10,7 @@ interface TenantRepository {
 
     fun findById(id: UUID): Tenant?
 
-    fun findByName(name: String): Tenant?
+    fun findByName(name: TenantName): Tenant?
 
     fun findAll(): List<Tenant>
 }
