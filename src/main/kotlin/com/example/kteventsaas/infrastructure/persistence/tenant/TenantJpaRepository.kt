@@ -2,6 +2,7 @@ package com.example.kteventsaas.infrastructure.persistence.tenant
 
 import com.example.kteventsaas.domain.tenant.entity.Tenant
 import com.example.kteventsaas.domain.tenant.repository.TenantRepository
+import com.example.kteventsaas.domain.tenant.valueobject.TenantName
 import com.example.kteventsaas.infrastructure.persistence.tenant.entity.TenantJpaEntity
 import com.example.kteventsaas.infrastructure.persistence.tenant.mapper.TenantMapper
 import org.springframework.data.jpa.repository.JpaRepository
@@ -24,7 +25,7 @@ class TenantJpaRepository(
         return tenantSpringDataRepository.findByIdOrNull(id)?.let { tenantMapper.toDomain(it) }
     }
 
-    override fun findByName(name: String): Tenant? {
+    override fun findByName(name: TenantName): Tenant? {
         return tenantSpringDataRepository.findByName(name)?.let { tenantMapper.toDomain(it) }
     }
 
@@ -35,5 +36,5 @@ class TenantJpaRepository(
 
 // ここがSpring Data JPA用のインタフェース
 interface TenantSpringDataRepository : JpaRepository<TenantJpaEntity, UUID> {
-    fun findByName(name: String): TenantJpaEntity?
+    fun findByName(name: TenantName): TenantJpaEntity?
 }

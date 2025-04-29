@@ -25,6 +25,13 @@ class TenantAdminController(
         return TenantResponse.from(tenant)
     }
 
+    @GetMapping("/name/{name}")
+    fun getTenantByName(@PathVariable name: String): TenantResponse {
+        val tenant = tenantApplicationService.getTenantByName(name)
+            ?: throw RuntimeException("Tenant not found")
+        return TenantResponse.from(tenant)
+    }
+
     @GetMapping
     fun listTenants(): List<TenantResponse> {
         return tenantApplicationService.listTenants()

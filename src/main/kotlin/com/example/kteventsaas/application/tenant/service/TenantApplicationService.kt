@@ -23,7 +23,7 @@ class TenantApplicationService(
     }
 
     fun getTenantByName(name: String): Tenant? {
-        return tenantRepository.findByName(name)
+        return tenantRepository.findByName(TenantName(name))
     }
 
     fun listTenants(): List<Tenant> {
