@@ -2,7 +2,6 @@ package com.example.kteventsaas.infrastructure.persistence.tenant
 
 import com.example.kteventsaas.domain.tenant.entity.Tenant
 import com.example.kteventsaas.domain.tenant.repository.TenantRepository
-import com.example.kteventsaas.domain.tenant.valueobject.TenantName
 import com.example.kteventsaas.infrastructure.persistence.tenant.entity.TenantJpaEntity
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.repository.findByIdOrNull
@@ -31,12 +30,12 @@ class TenantJpaRepository(
         return tenantSpringDataRepository.findAll().map { it.toDomain() }
     }
 
-    private fun Tenant.toJpaEntity(): TenantJpaEntity = TenantJpaEntity(id = this.id, name = this.name.value)
+    private fun Tenant.toJpaEntity(): TenantJpaEntity = TenantJpaEntity(id = this.id, name = this.name)
 
     private fun TenantJpaEntity.toDomain(): Tenant {
         return Tenant(
             id = this.id,
-            name = TenantName(this.name),
+            name = this.name,
         )
     }
 }
