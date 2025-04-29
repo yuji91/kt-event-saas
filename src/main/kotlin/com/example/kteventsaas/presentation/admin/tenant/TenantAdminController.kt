@@ -1,6 +1,7 @@
 package com.example.kteventsaas.presentation.admin.tenant
 
 import com.example.kteventsaas.application.tenant.service.TenantApplicationService
+import com.example.kteventsaas.domain.tenant.valueobject.TenantName
 import com.example.kteventsaas.presentation.admin.tenant.dto.CreateTenantRequest
 import com.example.kteventsaas.presentation.admin.tenant.dto.TenantResponse
 import com.example.kteventsaas.presentation.common.exception.ErrorCodes
@@ -31,7 +32,7 @@ class TenantAdminController(
 
     @GetMapping("/name/{name}")
     fun getTenantByName(@PathVariable name: String): TenantResponse {
-        val tenant = tenantApplicationService.getTenantByName(name)
+        val tenant = tenantApplicationService.getTenantByName(TenantName(name))
             ?: throw NotFoundException("Tenant not found")
         return TenantResponse.from(tenant)
     }
