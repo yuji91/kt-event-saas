@@ -1,6 +1,7 @@
 plugins {
 	kotlin("jvm") version "1.9.25"
 	kotlin("plugin.spring") version "1.9.25"
+	kotlin("kapt") version "1.9.22"
 	id("org.springframework.boot") version "3.4.5"
 	id("io.spring.dependency-management") version "1.1.7"
 	id("org.flywaydb.flyway") version "11.8.0"
@@ -40,6 +41,8 @@ dependencies {
 	implementation("jakarta.persistence:jakarta.persistence-api:3.1.0")
 	implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.6")
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
+	implementation("org.mapstruct:mapstruct:1.5.5.Final")
+	kapt("org.mapstruct:mapstruct-processor:1.5.5.Final")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	developmentOnly("org.springframework.boot:spring-boot-docker-compose")
 	runtimeOnly("org.postgresql:postgresql")
@@ -71,6 +74,10 @@ kotlin {
 	compilerOptions {
 		freeCompilerArgs.addAll("-Xjsr305=strict")
 	}
+}
+
+kapt {
+	correctErrorTypes = true
 }
 
 tasks.withType<Test> {
