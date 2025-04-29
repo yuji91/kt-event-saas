@@ -3,7 +3,9 @@ package com.example.kteventsaas.presentation.admin.tenant
 import com.example.kteventsaas.application.tenant.service.TenantApplicationService
 import com.example.kteventsaas.presentation.admin.tenant.dto.CreateTenantRequest
 import com.example.kteventsaas.presentation.admin.tenant.dto.TenantResponse
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 import java.util.UUID
 
 @RestController
@@ -21,14 +23,14 @@ class TenantAdminController(
     @GetMapping("/{id}")
     fun getTenant(@PathVariable id: UUID): TenantResponse {
         val tenant = tenantApplicationService.getTenant(id)
-            ?: throw RuntimeException("Tenant not found")
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Tenant not found")
         return TenantResponse.from(tenant)
     }
 
     @GetMapping("/name/{name}")
     fun getTenantByName(@PathVariable name: String): TenantResponse {
         val tenant = tenantApplicationService.getTenantByName(name)
-            ?: throw RuntimeException("Tenant not found")
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Tenant not found")
         return TenantResponse.from(tenant)
     }
 
