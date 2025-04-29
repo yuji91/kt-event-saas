@@ -1,4 +1,4 @@
-package com.example.kteventsaas.domain.tenant.converter
+package com.example.kteventsaas.infrastructure.persistence.converter
 
 import com.example.kteventsaas.domain.tenant.valueobject.TenantName
 import jakarta.persistence.AttributeConverter

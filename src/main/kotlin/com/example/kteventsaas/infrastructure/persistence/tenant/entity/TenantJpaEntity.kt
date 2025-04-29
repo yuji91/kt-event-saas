@@ -1,6 +1,6 @@
 package com.example.kteventsaas.infrastructure.persistence.tenant.entity
 
-import com.example.kteventsaas.domain.tenant.converter.TenantNameConverter
+import com.example.kteventsaas.infrastructure.persistence.converter.TenantNameConverter
 import com.example.kteventsaas.domain.tenant.valueobject.TenantName
 import com.example.kteventsaas.infrastructure.persistence.common.AuditableJpa
 import jakarta.persistence.*
