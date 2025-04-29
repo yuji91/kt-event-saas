@@ -18,7 +18,4 @@ class TenantJpaEntity(
     @Convert(converter = TenantNameConverter::class)
     var name: TenantName
 
-) : AuditableJpa(){
-    /** Hibernate 用 no-arg CTOR */
-    protected constructor() : this(null, TenantName("require(value.isNotBlank())"))
-}
+) : AuditableJpa()
