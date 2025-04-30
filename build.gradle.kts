@@ -54,6 +54,7 @@ dependencies {
 	testImplementation("org.springframework.ai:spring-ai-spring-boot-testcontainers")
 	testImplementation("org.testcontainers:junit-jupiter")
 	testImplementation("org.testcontainers:postgresql")
+	testImplementation("io.mockk:mockk:1.13.5")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
