@@ -26,14 +26,14 @@ class TenantAdminController(
     @GetMapping("/{id}")
     fun getTenant(@PathVariable id: UUID): TenantResponse {
         val tenant = tenantApplicationService.getTenant(id)
-            ?: throw NotFoundException("Tenant not found")
+            ?: throw NotFoundException("Tenant not found", errorCode = ErrorCodes.TENANT_NOT_FOUND)
         return TenantResponse.from(tenant)
     }
 
     @GetMapping("/name/{name}")
     fun getTenantByName(@PathVariable name: String): TenantResponse {
         val tenant = tenantApplicationService.getTenantByName(TenantName(name))
-            ?: throw NotFoundException("Tenant not found")
+            ?: throw NotFoundException("Tenant not found", errorCode = ErrorCodes.TENANT_NOT_FOUND)
         return TenantResponse.from(tenant)
     }
 
@@ -48,7 +48,7 @@ class TenantAdminController(
     fun handleNotFoundException(e: NotFoundException): ErrorResponse {
         return ErrorResponse(
             status = HttpStatus.NOT_FOUND.value(),
-            errorCode = ErrorCodes.TENANT_NOT_FOUND ,
+            errorCode = e.errorCode,
             message = e.message
         )
     }
