@@ -14,21 +14,21 @@ import java.util.UUID
  * DTOクラス TenantResponse の単体テスト
  *
  * ■ このテストの責務（WHAT）
- * - ドメインオブジェクトからDTOへの変換結果がJSON表現に正しく反映されることを確認する
- * - KotlinのDTO（data class）としての等価性・不変性を確認する
- * - Jacksonによるシリアライズ／デシリアライズが期待通りに動作するか確認する
- * - JSON構造に変更が加わった際のリグレッションテストとして機能させる
+ * - ドメインオブジェクトから変換された DTO が、期待通りの JSON にシリアライズされることを確認する
+ * - JSON からのデシリアライズ結果が DTO として正しく復元されることを検証する
+ * - DTO の等価性（equals/hashCode）および不変性を確認する
+ * - JSON 構造の変更がリグレッション（後方互換性の破壊）を引き起こさないことを保証する
  *
  * ■ テスト手段（HOW）
- * - シリアライズ（→ JSON文字列）とデシリアライズ（→ オブジェクト）の正確性を検証する
- * - 空文字列・null・未知のフィールドなどを含む JSON に対する Jackson の挙動を検証する
- * - 値オブジェクトとしての等価性（equals）・一貫性（hashCode）を検証する
- * - 破壊的変更（フィールド名の変更・追加）へのリグレッションを防ぐためのテストとして機能させる
+ * - ObjectMapper によるシリアライズ／デシリアライズ処理を明示的に実行し、入出力の正当性を検証
+ * - フィールド名・型・null制約など、Jackson 設定との整合性をチェック
+ * - equals / hashCode の動作確認を通じて、DTO が「値オブジェクト」として正しく振る舞うかを確認
+ * - 破壊的変更（フィールド名の変更・追加など）に対するリグレッションテストの役割も担う
  *
  * ■ テスト対象外の責務（NOT covered）
- * - DB永続化（Entityとのマッピング）やRepositoryの責務
- * - Service層やController層のビジネスロジック
- * - バリデーションロジック（例: nameが空でよいか等）※別のレイヤーで検証すべき
+ * - サービス層・Controller 層でのバリデーションや例外処理
+ * - 永続化（Entity とのマッピング）や DB アクセス
+ * - API エンドポイントのステータスコードやルーティングの正当性（Controller テストで検証済）
  *
  * ■ テスト設計方針
  * - JSONシリアライズ／デシリアライズの正確性を担保する
@@ -40,8 +40,15 @@ import java.util.UUID
  * - equals / hashCode メソッド
  *
  * ■ 使用ライブラリ
- * - Jackson（com.fasterxml.jackson.databind.ObjectMapper）
  * - AssertJ（org.assertj.core.api.Assertions）
+ * - Jackson（com.fasterxml.jackson.databind.ObjectMapper）
+ * - Spring Boot Test（@SpringBootTest により ObjectMapper を DI）
+ *
+ * ■ 主な検証観点
+ * - シリアライズ後の JSON 構造（キー名、値の型、一貫性）
+ * - デシリアライズ時の復元精度（フィールドの欠落・型不一致・未知キーの許容など）
+ * - 空文字列や null 値の扱いに対する Jackson の挙動
+ * - 値オブジェクトとしての等価性と hashCode の一貫性
  * ===============================================================
  */
 @SpringBootTest
