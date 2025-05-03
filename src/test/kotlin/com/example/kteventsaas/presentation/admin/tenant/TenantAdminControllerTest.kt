@@ -4,9 +4,7 @@ import com.example.kteventsaas.application.tenant.service.TenantApplicationServi
 import com.example.kteventsaas.domain.tenant.entity.Tenant
 import com.example.kteventsaas.domain.tenant.valueobject.TenantName
 import com.example.kteventsaas.presentation.admin.tenant.dto.CreateTenantRequest
-import com.example.kteventsaas.presentation.admin.tenant.dto.TenantResponse
 import com.example.kteventsaas.testconfig.MockTenantApplicationServiceConfig
-import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.mockk.every
 import io.mockk.verify
@@ -46,15 +44,16 @@ import java.util.*
  *
  * ■ テスト対象外の責務（NOT covered）
  * - サービス層のビジネスロジックの正当性（例：永続化、重複チェック、整合性検証など）
- * - DTOの変換ロジックやプロパティの整合性（例：TenantResponse.from(...) の詳細）
+ * - DTOの構造や Jackson によるシリアライズ／デシリアライズの妥当性（例：TenantResponse の形式）
  * - JSON構造の詳細（キー名やネスト構造）やグローバル例外ハンドラの出力フォーマット
  * - Spring Bootアプリケーション全体の構成や設定（Bean定義、DB接続など）
  *
  * ■ テスト設計方針（HOW）
  * - MockK による Stub（戻り値固定）と Mock（呼び出し検証）の併用で外部依存を排除
  * - `MockMvc` による HTTP レベルでのエンドポイントの振る舞い検証
+ *  * - レスポンス内容の検証は JsonPath を使用し、DTOとの依存を排除（オブジェクト変換なし）
  * - 正常系・異常系・境界値ケースを分離し、観点ベースで明確にテスト分割
- * - `objectMapper` による JSON パースで DTO の中身を検証（ただし詳細ロジックは責務外）
+ * - 必要に応じて Jackson の ObjectMapper を使った JSON 生成は行うが、出力検証には用いない
  * - 必要があれば MockK による spy slot confirmVerified も追加する
  *
  * ■ 使用技術・ライブラリ
@@ -62,6 +61,7 @@ import java.util.*
  * - MockK（every, verify, wasNot Called）
  * - Jackson（ObjectMapper）
  * - AssertJ（assertThat）
+ * - JsonPath（レスポンス検証用）
  *
  * ■ 観点
  * - HTTP ステータスコード
@@ -254,18 +254,15 @@ class TenantAdminControllerTest {
             every { tenantApplicationService.createTenant(nameAtMaxLength) } returns tenant
             val body = objectMapper.writeValueAsString(CreateTenantRequest(nameAtMaxLength))
 
-            // --- Act & Assert
-            val response = mockMvc.post("/admin/tenants") {
+            // --- Act & Assert ---
+            mockMvc.post("/admin/tenants") {
                 contentType = MediaType.APPLICATION_JSON
                 content = body
             }.andExpect {
                 status { isCreated() }
-            }.andReturn().response
-
-            // デシリアライズすることで、単なる文字列ではなくKotlinオブジェクトとしてプロパティ単位でアクセスできるようにする
-            val tenantResponse = objectMapper.readValue(response.contentAsString, TenantResponse::class.java)
-            assertThat(tenantResponse.name).isEqualTo(nameAtMaxLength)
-            assertThat(tenantResponse.id).isEqualTo(tenant.id)
+                jsonPath("$.id").value(tenant.id.toString())
+                jsonPath("$.name").value(nameAtMaxLength)
+            }
 
             // --- Verify service invocation (Mock) ---
             verify { tenantApplicationService.createTenant(nameAtMaxLength) }
@@ -291,15 +288,13 @@ class TenantAdminControllerTest {
             // Return dummy_data and isolate this test from external dependencies (Stub)
             every { tenantApplicationService.getTenant(tenantId) } returns tenant
 
-            // --- Act & Assert
-            val response = mockMvc.get("/admin/tenants/$tenantId")
-                .andExpect { status { isOk() } }
-                .andReturn().response
-
-            val tenantResponse = objectMapper.readValue(response.contentAsString, TenantResponse::class.java)
-
-            assertThat(tenantResponse.id).isEqualTo(tenantId)
-            assertThat(tenantResponse.name).isEqualTo(tenantName)
+            // --- Act & Assert ---
+            mockMvc.get("/admin/tenants/$tenantId")
+                .andExpect {
+                    status { isOk() }
+                    jsonPath("$.id").value(tenantId.toString())
+                    jsonPath("$.name").value(tenantName)
+                }
 
             // --- Verify service invocation (Mock) ---
             verify { tenantApplicationService.getTenant(tenantId) }
@@ -321,7 +316,7 @@ class TenantAdminControllerTest {
             // Return dummy_data and isolate this test from external dependencies (Stub)
             every { tenantApplicationService.getTenant(tenantId) } returns null
 
-            // --- Act & Assert
+            // --- Act & Assert ---
             mockMvc.get("/admin/tenants/$tenantId")
                 .andExpect {
                     status { isNotFound() }
@@ -347,21 +342,23 @@ class TenantAdminControllerTest {
         @DisplayName("観点: 指定した名前のテナントが存在する場合に 200 OK + 正しい JSON が返ること")
         @Test
         fun `should get tenant by name`() {
+
+            // --- Arrange ---
             val name = "ExampleTenant_01"
             val tenant = Tenant(UUID.randomUUID(), TenantName(name))
 
             // Return dummy_data and isolate this test from external dependencies (Stub)
             every { tenantApplicationService.getTenantByName(TenantName(name)) } returns tenant
 
-            val response = mockMvc.get("/admin/tenants/name/$name")
-                .andExpect { status { isOk() } }
-                .andReturn().response
-
-            val tenantResponse = objectMapper.readValue(response.contentAsString, TenantResponse::class.java)
-
-            assertThat(tenantResponse.name).isEqualTo(name)
-            assertThat(tenantResponse.id).isEqualTo(tenant.id)
+            // --- Act & Assert ---
+            mockMvc.get("/admin/tenants/name/$name")
+                .andExpect {
+                    status { isOk() }
+                    jsonPath("$.id").value(tenant.id.toString())
+                    jsonPath("$.name").value(name)
+                }
         }
+
 
         // endregion
 
@@ -394,25 +391,25 @@ class TenantAdminControllerTest {
         @DisplayName("観点: テナントが存在する場合に 200 OK + リスト形式の JSON が返ること")
         @Test
         fun `should list all tenants`() {
+
+            // --- Arrange ---
             val tenants = listOf(
                 Tenant(UUID.randomUUID(), TenantName("T1")),
                 Tenant(UUID.randomUUID(), TenantName("T2"))
             )
-
             // Return dummy data and isolate this test from external dependencies (Stub)
             every { tenantApplicationService.listTenants() } returns tenants
 
-            val response = mockMvc.get("/admin/tenants")
-                .andExpect { status { isOk() } }
-                .andReturn().response
-
-            val tenantResponses: List<TenantResponse> = objectMapper.readValue(
-                response.contentAsString,
-                object : TypeReference<List<TenantResponse>>() {}
-            )
-
-            assertThat(tenantResponses).hasSize(2)
-            assertThat(tenantResponses.map { it.name }).containsExactly("T1", "T2")
+            // --- Act & Assert ---
+            mockMvc.get("/admin/tenants")
+                .andExpect {
+                    status { isOk() }
+                    jsonPath("$.length()").value(2)
+                    jsonPath("$[0].id").value(tenants[0].id.toString())
+                    jsonPath("$[0].name").value("T1")
+                    jsonPath("$[1].id").value(tenants[1].id.toString())
+                    jsonPath("$[1].name").value("T2")
+                }
         }
 
         // endregion
