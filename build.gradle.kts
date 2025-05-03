@@ -33,29 +33,46 @@ repositories {
 extra["springAiVersion"] = "1.0.0-M7"
 
 dependencies {
-	implementation("org.springframework.boot:spring-boot-starter-webflux")
-	implementation("org.jetbrains.kotlin:kotlin-reflect")
-	implementation("org.springframework.ai:spring-ai-starter-model-openai")
-	implementation("org.postgresql:postgresql:42.7.3")
-	implementation("org.flywaydb:flyway-database-postgresql:11.8.0")
+	// Spring MVC（同期）用のWeb依存
+	implementation("org.springframework.boot:spring-boot-starter-web")
+
+	// OpenAPI (springdoc) - MVC用
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6")
+
+	// 制約アノテーションを有効化して MethodArgumentNotValidException を返すようにする
+	implementation("org.springframework.boot:spring-boot-starter-validation")
+
+	// データベース関連
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("jakarta.persistence:jakarta.persistence-api:3.1.0")
-	implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.6")
-	implementation("org.springframework.boot:spring-boot-starter-actuator")
+	implementation("org.flywaydb:flyway-database-postgresql:11.8.0")
+	runtimeOnly("org.postgresql:postgresql:42.7.3")
+
+	// Kotlin関連
+	implementation("org.jetbrains.kotlin:kotlin-reflect")
+
+	// MapStruct（DTO変換）
 	implementation("org.mapstruct:mapstruct:1.5.5.Final")
 	kapt("org.mapstruct:mapstruct-processor:1.5.5.Final")
-	developmentOnly("org.springframework.boot:spring-boot-devtools")
+
+	// Spring Boot運用系
+	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	developmentOnly("org.springframework.boot:spring-boot-docker-compose")
-	runtimeOnly("org.postgresql:postgresql")
-	developmentOnly("org.springframework.ai:spring-ai-spring-boot-docker-compose")
+	developmentOnly("org.springframework.boot:spring-boot-devtools")
+
+	// テスト関連
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.boot:spring-boot-testcontainers")
-	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-	testImplementation("org.springframework.ai:spring-ai-spring-boot-testcontainers")
 	testImplementation("org.testcontainers:junit-jupiter")
 	testImplementation("org.testcontainers:postgresql")
+	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 	testImplementation("io.mockk:mockk:1.13.5")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+//  Spring AI (将来的に導入予定)
+//	implementation("org.springframework.ai:spring-ai-starter-model-openai")
+//	developmentOnly("org.springframework.ai:spring-ai-spring-boot-docker-compose")
+//	testImplementation("org.springframework.ai:spring-ai-spring-boot-testcontainers")
 }
 
 dependencyManagement {
