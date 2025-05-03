@@ -1,6 +1,8 @@
-package com.example.kteventsaas.presentation.admin.tenant.dto
+package com.example.kteventsaas.unit.presentation.admin.tenant.dto
 
+import com.example.kteventsaas.presentation.admin.tenant.dto.TenantResponse
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.exc.ValueInstantiationException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
@@ -165,7 +167,7 @@ class TenantResponseTest {
         val json = """{"id":"${UUID.randomUUID()}","name":null}"""
         assertThatThrownBy {
             objectMapper.readValue(json, TenantResponse::class.java)
-        }.isInstanceOf(com.fasterxml.jackson.databind.exc.ValueInstantiationException::class.java)
+        }.isInstanceOf(ValueInstantiationException::class.java)
 //        }.isInstanceOf(com.fasterxml.jackson.databind.exc.MismatchedInputException::class.java) // 型のミスマッチではなく、非 nullable パラメータに null を渡したことで「インスタンス生成時に失敗」するエラーとなる
     }
 
