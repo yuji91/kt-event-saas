@@ -15,6 +15,7 @@ import io.mockk.clearMocks
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers.`is`
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -31,74 +32,44 @@ import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.server.ResponseStatusException
 import java.util.*
 
-// テスト概要
-// 「HTTP リクエストを受けて適切な例外・ステータスを返し、サービス呼び出しを正しく行う／行わない」
-//
-//という 外縁的な振る舞い にフォーカスし、内部のビジネスロジックや JSON シリアライズなどの詳細は切り落とす
-
-// Stub : Controllerから見た外部依存の「振る舞いを固定」する
-// 「この引数で呼ばれたらこの値を返す／この例外を投げる」という「入力→出力」を決めておく
-//  例 : every { tenantApplicationService.createTenant(duplicateName) } throws ConflictException(...)
-//  Stub だけだと「返す内容」は決められますが、その後呼ばれたかどうかまでは追えない
-
-// Stub（返り値固定）
-
-// Mock : テスト終了時に「その依存が期待どおり呼ばれたか」を検証
-// 呼び出し回数や引数をチェックして、テスト対象の内部ロジックが正しく依存を使っているかを保証
-// 例 : verify { tenantApplicationService.createTenant(duplicateName) }
-//      confirmVerified(tenantApplicationService)
-// Mock だけだと「呼ばれたか」は確認できるものの、返り値や例外をカスタマイズできないことが多い
-
-// これらを踏まえて以下を同時にテスト
-// ・コントローラ呼び出し時にサービス層がどう動くか（Stub）
-// ・本当にサービス層を一度だけ／呼ぶべきタイミングで呼んでいるか（Mock）
-
-// 責務（WHAT「何を検証するか」）
-// 不正なリクエストで400/409など正しいステータスが返ること
-// 例外オブジェクト（MethodArgumentNotValidException や ConflictException）の型やメッセージが正しいこと
-// サービス呼び出しの有無・引数が想定どおりであること
-
-// テスト責務を書き出すときは「何を確認するか（ステータス、例外、中身、サービス呼び出し）」にフォーカスし
-// Mock／Stub はそれを達成するための実装上の方法として整理しておく
-
-// 手段 HOW
-// Stub：every { … } throws … で依存の振る舞いを固定し
-// Mock：verify { … }／confirmVerified で呼び出しの有無・回数・引数を検証する
-
-// 1. リクエスト→バリデーション挙動の検証
-// @Valid が働き、入力が不正な場合に MethodArgumentNotValidException が発生すること
-// 不正入力時に HTTP 400 が返されること
-
-// 2. HTTP ステータスコードの検証
-// 正常系（名前が空でない、かつ重複しない場合）は 201 に飛ぶ想定を別途テストする
-// 異常系（空文字／文字数超過では 400、重複では 409 が返されること）
-
-// 3. 例外オブジェクトの中身検証（B. 例外オブジェクト検証方式）
-// resolvedException で取得した例外の型が想定どおりであること
-// 例外メッセージやカスタムプロパティ（errorCode など）が正しいこと
-
-// 4. サービス呼び出しの有無・呼び出しパラメータの検証
-// バリデーション NG ケースでサービスが一切呼ばれないこと
-// 正常／重複ケースでサービスの createTenant(name) が期待どおり呼ばれること
-
-// 5. Mock／Stub の適切な使い分け
-// Stub (every { … } throws …) でサービス層の例外スローを再現し
-// Mock (verify { … } / confirmVerified) で呼び出し状況を検証
-
-// Controller テストの「責務でない」内容
-// 1. サービス層内部のロジック検証
-// 重複チェックや永続化の具体的実装、DBトランザクションの挙動などはテストしない
-
-// 2. グローバル例外ハンドラ（@ControllerAdvice）や JSON レスポンスフォーマットの詳細
-// 今回は例外オブジェクト検証方式なので、JSON のキーや構造は責務外
-
-// 3. DTO やエンティティの振る舞いテスト
-// CreateTenantRequest 自体の getter/setter や TenantResponse.from(...) の変換ロジックは別の単体テスト領域
-
-// 4. Spring Boot アプリケーション全体の起動やコンテキスト構成
-// Bean 定義の有無、DataSource や JPA 設定の整合性などはコントローラテストでカバーしない
-
-
+/**
+ * ===============================================================
+ * TenantAdminControllerTest
+ * ---------------------------------------------------------------
+ * 管理画面向け TenantAdminController の単体テスト
+ *
+ * ■ このテストの責務（WHAT）
+ * - HTTP リクエストに対して適切なレスポンス（ステータス・本文）を返すことを確認する
+ * - サービス層の呼び出しが期待通りに行われる（回数・引数）ことを確認する
+ * - 異常系（バリデーションエラー、重複、存在しないIDなど）に対して正しく例外ハンドリングされること
+ * - REST API の仕様（エンドポイント、ステータスコード、レスポンス構造）のリグレッション検出
+ *
+ * ■ テスト対象外の責務（NOT covered）
+ * - サービス層のビジネスロジックの正当性（例：永続化、重複チェック、整合性検証など）
+ * - DTOの変換ロジックやプロパティの整合性（例：TenantResponse.from(...) の詳細）
+ * - JSON構造の詳細（キー名やネスト構造）やグローバル例外ハンドラの出力フォーマット
+ * - Spring Bootアプリケーション全体の構成や設定（Bean定義、DB接続など）
+ *
+ * ■ テスト設計方針（HOW）
+ * - MockK による Stub（戻り値固定）と Mock（呼び出し検証）の併用で外部依存を排除
+ * - `MockMvc` による HTTP レベルでのエンドポイントの振る舞い検証
+ * - 正常系・異常系・境界値ケースを分離し、観点ベースで明確にテスト分割
+ * - `objectMapper` による JSON パースで DTO の中身を検証（ただし詳細ロジックは責務外）
+ * - 必要があれば MockK による spy slot confirmVerified も追加する
+ *
+ * ■ 使用技術・ライブラリ
+ * - Spring Boot（@SpringBootTest + MockMvc）
+ * - MockK（every, verify, wasNot Called）
+ * - Jackson（ObjectMapper）
+ * - AssertJ（assertThat）
+ *
+ * ■ 観点
+ * - HTTP ステータスコード
+ * - エラーメッセージ・例外型
+ * - サービス呼び出し有無・引数の妥当性
+ * - 境界値での仕様遵守（例：名前255文字まで許容など）
+ * ===============================================================
+ */
 // @WebMvcTest(TenantAdminController::class) を使っていたが、以下に置き換えた
 // @WebMvcTest は @EnableJpaAuditing などが有効になっていると、Entityがないために失敗する
 // それを防ぐには excludeAutoConfiguration で DataJpa などを切る必要があるが、構成が複雑化しがち
@@ -130,12 +101,9 @@ class TenantAdminControllerTest {
 
         // region Normal Cases - 正常系
 
-        // 目的：Controllerの「エンドポイントとしての振る舞い」を検証したい
-        // Controllerの“入出力インタフェース”検証が責務。DTOの整合性は別テスト
-        // Assert は jsonPath で HTTPの振る舞い確認に集中
+        @DisplayName("観点: 正常な入力時に 201 Created と期待される JSON が返ること")
         @Test
         fun `should return 201 Created when request is valid`() {
-
 
             // --- Arrange ---
             val name = "ExampleTenant_01"
@@ -172,6 +140,7 @@ class TenantAdminControllerTest {
 
         // region Exceptional Cases - 異常系
 
+        @DisplayName("観点: name が空のときに 400 BadRequest + 適切なエラーメッセージが返ること")
         @Test
         fun `should return 400 BadRequest when name is blank`() {
             // TODO: GlobalExceptionHandler（@ControllerAdvice）移行時に修正
@@ -202,6 +171,7 @@ class TenantAdminControllerTest {
         // Controller が例外を投げた時点でサービスを呼ばないため
         // 目的：境界値を渡したときに、想定通りの TenantResponse が返ってくるかを検証したい（値の詳細を見る
         // objectMapper.readValue で このテストの関心事は「長さ255が許容され、DTOの内容も正しいか」という具体値
+        @DisplayName("観点: name が256文字のときに 400 BadRequest + バリデーションエラーが返ること")
         @Test
         fun `should return 400 BadRequest when name exceeds 255 characters`() {
             // TODO: GlobalExceptionHandler（@ControllerAdvice）移行時に修正
@@ -232,6 +202,7 @@ class TenantAdminControllerTest {
             verify { tenantApplicationService wasNot Called }
         }
 
+        @DisplayName("観点: 重複した name の場合に 409 Conflict + エラーメッセージが返ること")
         @Test
         fun `should return 409 Conflict when name is duplicated`() {
             // TODO: GlobalExceptionHandler（@ControllerAdvice）移行時に修正
@@ -273,6 +244,7 @@ class TenantAdminControllerTest {
 
         // region Boundary Cases - 境界値
 
+        @DisplayName("観点: name が255文字のときに正常に作成できること")
         @Test
         fun `should create tenant when name length is exactly 255 characters`() {
 
@@ -307,6 +279,7 @@ class TenantAdminControllerTest {
 
         // region Normal Cases - 正常系
 
+        @DisplayName("観点: 指定した ID のテナントが存在する場合に 200 OK + 正しい JSON が返ること")
         @Test
         fun `should get tenant by id`() {
 
@@ -338,6 +311,7 @@ class TenantAdminControllerTest {
 
         // 目的：RESTのエラー応答仕様（errorCodeやmessage）を守っているかを検証。
         // JSONフォーマットが想定通りかを確認するケース
+        @DisplayName("観点: 指定した ID のテナントが存在しない場合に 404 NotFound + エラー応答が返ること")
         @Test
         fun `should return 404 when tenant is not found by id`() {
 
@@ -370,6 +344,7 @@ class TenantAdminControllerTest {
 
         // region Normal Cases - 正常系
 
+        @DisplayName("観点: 指定した名前のテナントが存在する場合に 200 OK + 正しい JSON が返ること")
         @Test
         fun `should get tenant by name`() {
             val name = "ExampleTenant_01"
@@ -392,6 +367,7 @@ class TenantAdminControllerTest {
 
         // region Exceptional Cases - 異常系
 
+        @DisplayName("観点: 指定した名前のテナントが存在しない場合に 404 NotFound + エラー応答が返ること")
         @Test
         fun `should return 404 when tenant is not found by name`() {
             val name = "NonExistentTenant"
@@ -415,6 +391,7 @@ class TenantAdminControllerTest {
 
         // region Normal Cases - 正常系
 
+        @DisplayName("観点: テナントが存在する場合に 200 OK + リスト形式の JSON が返ること")
         @Test
         fun `should list all tenants`() {
             val tenants = listOf(
