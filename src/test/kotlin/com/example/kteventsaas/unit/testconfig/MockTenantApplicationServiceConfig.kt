@@ -1,4 +1,4 @@
-package com.example.kteventsaas.testconfig
+package com.example.kteventsaas.unit.testconfig
 
 import com.example.kteventsaas.application.tenant.service.TenantApplicationService
 import io.mockk.mockk

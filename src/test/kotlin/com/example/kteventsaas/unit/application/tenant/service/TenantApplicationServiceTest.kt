@@ -1,12 +1,13 @@
-package com.example.kteventsaas.application.tenant.service
+package com.example.kteventsaas.unit.application.tenant.service
 
+import com.example.kteventsaas.application.tenant.service.TenantApplicationService
 import com.example.kteventsaas.domain.tenant.entity.Tenant
 import com.example.kteventsaas.domain.tenant.repository.TenantRepository
 import com.example.kteventsaas.domain.tenant.valueobject.TenantName
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -69,7 +70,7 @@ class TenantApplicationServiceTest {
 
             val result = tenantApplicationService.createTenant(name)
 
-            assertThat(result.name.value).isEqualTo(name)
+            Assertions.assertThat(result.name.value).isEqualTo(name)
             verify { tenantRepository.save(any()) }
         }
 
@@ -90,8 +91,8 @@ class TenantApplicationServiceTest {
 
             val result = tenantApplicationService.getTenant(id)
 
-            assertThat(result).isNotNull
-            assertThat(result?.id).isEqualTo(id)
+            Assertions.assertThat(result).isNotNull
+            Assertions.assertThat(result?.id).isEqualTo(id)
         }
 
         // endregion
@@ -106,7 +107,7 @@ class TenantApplicationServiceTest {
 
             val result = tenantApplicationService.getTenant(id)
 
-            assertThat(result).isNull()
+            Assertions.assertThat(result).isNull()
         }
 
         // endregion
@@ -126,8 +127,8 @@ class TenantApplicationServiceTest {
 
             val result = tenantApplicationService.getTenantByName(name)
 
-            assertThat(result).isNotNull
-            assertThat(result?.name).isEqualTo(name)
+            Assertions.assertThat(result).isNotNull
+            Assertions.assertThat(result?.name).isEqualTo(name)
         }
 
         // endregion
@@ -142,7 +143,7 @@ class TenantApplicationServiceTest {
 
             val result = tenantApplicationService.getTenantByName(name)
 
-            assertThat(result).isNull()
+            Assertions.assertThat(result).isNull()
         }
 
         // endregion
@@ -164,8 +165,8 @@ class TenantApplicationServiceTest {
 
             val result = tenantApplicationService.listTenants()
 
-            assertThat(result).hasSize(2)
-            assertThat(result.map { it.name.value }).containsExactly("Tenant1", "Tenant2")
+            Assertions.assertThat(result).hasSize(2)
+            Assertions.assertThat(result.map { it.name.value }).containsExactly("Tenant1", "Tenant2")
         }
 
         // endregion
@@ -178,7 +179,7 @@ class TenantApplicationServiceTest {
 
             val result = tenantApplicationService.listTenants()
 
-            assertThat(result).isEmpty()
+            Assertions.assertThat(result).isEmpty()
         }
 
         // endregion

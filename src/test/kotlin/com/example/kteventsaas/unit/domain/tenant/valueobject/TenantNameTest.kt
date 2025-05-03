@@ -1,10 +1,10 @@
-package com.example.kteventsaas.domain.tenant.valueobject
+package com.example.kteventsaas.unit.domain.tenant.valueobject
 
-import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatThrownBy
+import com.example.kteventsaas.domain.tenant.valueobject.TenantName
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Tag
+import org.junit.jupiter.api.Test
 
 /**
  * ===============================================================
@@ -50,7 +50,7 @@ class TenantNameTest {
         @Test
         fun `should create TenantName when value is valid`() {
             val tenantName = TenantName("ExampleTenant")
-            assertThat(tenantName.value).isEqualTo("ExampleTenant")
+            Assertions.assertThat(tenantName.value).isEqualTo("ExampleTenant")
         }
 
         // endregion
@@ -59,7 +59,7 @@ class TenantNameTest {
 
         @Test
         fun `should throw exception when value is blank`() {
-            assertThatThrownBy { TenantName("") }
+            Assertions.assertThatThrownBy { TenantName("") }
                 .isInstanceOf(IllegalArgumentException::class.java)
                 .hasMessageContaining("must not be blank")
         }
@@ -72,7 +72,7 @@ class TenantNameTest {
         fun `should throw exception when value exceeds 255 characters`() {
             val longName = "a".repeat(256)
 
-            assertThatThrownBy { TenantName(longName) }
+            Assertions.assertThatThrownBy { TenantName(longName) }
                 .isInstanceOf(IllegalArgumentException::class.java)
                 .hasMessageContaining("255 characters or less")
         }
@@ -81,14 +81,14 @@ class TenantNameTest {
         fun `should create TenantName when value length is 255 characters`() {
             val validName = "a".repeat(255)
             val tenantName = TenantName(validName)
-            assertThat(tenantName.value).isEqualTo(validName)
+            Assertions.assertThat(tenantName.value).isEqualTo(validName)
         }
 
         @Test
         fun `should create TenantName when value length is 254 characters`() {
             val validName = "a".repeat(254)
             val tenantName = TenantName(validName)
-            assertThat(tenantName.value).isEqualTo(validName)
+            Assertions.assertThat(tenantName.value).isEqualTo(validName)
         }
 
         // endregion
@@ -102,7 +102,7 @@ class TenantNameTest {
         @Test
         fun `should return value as string`() {
             val tenantName = TenantName("TenantString")
-            assertThat(tenantName.toString()).isEqualTo("TenantString")
+            Assertions.assertThat(tenantName.toString()).isEqualTo("TenantString")
         }
 
         // endregion

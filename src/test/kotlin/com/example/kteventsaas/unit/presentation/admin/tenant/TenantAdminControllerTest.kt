@@ -1,17 +1,17 @@
-package com.example.kteventsaas.presentation.admin.tenant
+package com.example.kteventsaas.unit.presentation.admin.tenant
 
 import com.example.kteventsaas.application.tenant.service.TenantApplicationService
 import com.example.kteventsaas.domain.tenant.entity.Tenant
 import com.example.kteventsaas.domain.tenant.valueobject.TenantName
 import com.example.kteventsaas.presentation.admin.tenant.dto.CreateTenantRequest
-import com.example.kteventsaas.testconfig.MockTenantApplicationServiceConfig
+import com.example.kteventsaas.unit.testconfig.MockTenantApplicationServiceConfig
 import com.fasterxml.jackson.databind.ObjectMapper
-import io.mockk.every
-import io.mockk.verify
 import io.mockk.Called
 import io.mockk.clearMocks
-import org.assertj.core.api.Assertions.assertThat
-import org.hamcrest.Matchers.`is`
+import io.mockk.every
+import io.mockk.verify
+import org.assertj.core.api.Assertions
+import org.hamcrest.Matchers
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -22,13 +22,13 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath
+import org.springframework.test.web.client.match.MockRestRequestMatchers
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.server.ResponseStatusException
-import java.util.*
+import java.util.UUID
 
 /**
  * ===============================================================
@@ -126,8 +126,8 @@ class TenantAdminControllerTest {
                 content = requestBody // 実際の JSON ペイロードを渡す
             }.andExpect {
                 status { isCreated() }
-                jsonPath("$.id").value(expectedId.toString())
-                jsonPath("$.name").value(name)
+                MockRestRequestMatchers.jsonPath("$.id").value(expectedId.toString())
+                MockRestRequestMatchers.jsonPath("$.name").value(name)
             }
 
             // Mock : 「呼び出しの有無や引数を検証するダミー」
@@ -160,8 +160,8 @@ class TenantAdminControllerTest {
             // --- Assert: 起きた例外の中身を検証 ---
             val ex = result.resolvedException as MethodArgumentNotValidException
             val fieldErr = ex.bindingResult.fieldError
-            assertThat(fieldErr?.field).isEqualTo("name")
-            assertThat(fieldErr?.defaultMessage).isEqualTo("Tenant name must not be blank")
+            Assertions.assertThat(fieldErr?.field).isEqualTo("name")
+            Assertions.assertThat(fieldErr?.defaultMessage).isEqualTo("Tenant name must not be blank")
 
             // --- Verify service invocation (Mock) ---
             verify { tenantApplicationService wasNot Called }
@@ -196,7 +196,7 @@ class TenantAdminControllerTest {
                 .filter { it.field == "name" }
                 .map { it.defaultMessage }
 
-            assertThat(messages).containsExactly("Tenant name must be 255 characters or less")
+            Assertions.assertThat(messages).containsExactly("Tenant name must be 255 characters or less")
 
             // --- Verify service invocation (Mock) ---
             verify { tenantApplicationService wasNot Called }
@@ -215,9 +215,9 @@ class TenantAdminControllerTest {
             // サービスが HttpStatus.CONFLICT の例外を投げるようモック
             every {
                 tenantApplicationService.createTenant(duplicateName)
-            // MEMO: カスタム例外をまだ用意しないので、
-            //       Spring がコントローラ層で自動的に 409 Conflict を返してくれる
-            //       ResponseStatusException を利用
+                // MEMO: カスタム例外をまだ用意しないので、
+                //       Spring がコントローラ層で自動的に 409 Conflict を返してくれる
+                //       ResponseStatusException を利用
             } throws ResponseStatusException(
                 HttpStatus.CONFLICT,
                 "Tenant already exists"
@@ -233,8 +233,8 @@ class TenantAdminControllerTest {
 
             // --- Assert: 例外オブジェクト検証 ---
             val ex = result.resolvedException as ResponseStatusException
-            assertThat(ex.statusCode).isEqualTo(HttpStatus.CONFLICT)
-            assertThat(ex.reason).isEqualTo("Tenant already exists")
+            Assertions.assertThat(ex.statusCode).isEqualTo(HttpStatus.CONFLICT)
+            Assertions.assertThat(ex.reason).isEqualTo("Tenant already exists")
 
             // --- Verify service invocation (Mock) ---
             verify { tenantApplicationService.createTenant(duplicateName) }
@@ -260,8 +260,8 @@ class TenantAdminControllerTest {
                 content = body
             }.andExpect {
                 status { isCreated() }
-                jsonPath("$.id").value(tenant.id.toString())
-                jsonPath("$.name").value(nameAtMaxLength)
+                MockRestRequestMatchers.jsonPath("$.id").value(tenant.id.toString())
+                MockRestRequestMatchers.jsonPath("$.name").value(nameAtMaxLength)
             }
 
             // --- Verify service invocation (Mock) ---
@@ -292,8 +292,8 @@ class TenantAdminControllerTest {
             mockMvc.get("/admin/tenants/$tenantId")
                 .andExpect {
                     status { isOk() }
-                    jsonPath("$.id").value(tenantId.toString())
-                    jsonPath("$.name").value(tenantName)
+                    MockRestRequestMatchers.jsonPath("$.id").value(tenantId.toString())
+                    MockRestRequestMatchers.jsonPath("$.name").value(tenantName)
                 }
 
             // --- Verify service invocation (Mock) ---
@@ -320,8 +320,8 @@ class TenantAdminControllerTest {
             mockMvc.get("/admin/tenants/$tenantId")
                 .andExpect {
                     status { isNotFound() }
-                    jsonPath("$.errorCode", `is`("TENANT_NOT_FOUND"))
-                    jsonPath("$.message", `is`("Tenant not found"))
+                    jsonPath("$.errorCode", Matchers.`is`("TENANT_NOT_FOUND"))
+                    jsonPath("$.message", Matchers.`is`("Tenant not found"))
                 }
 
             // --- Verify service invocation (Mock) ---
@@ -354,8 +354,8 @@ class TenantAdminControllerTest {
             mockMvc.get("/admin/tenants/name/$name")
                 .andExpect {
                     status { isOk() }
-                    jsonPath("$.id").value(tenant.id.toString())
-                    jsonPath("$.name").value(name)
+                    MockRestRequestMatchers.jsonPath("$.id").value(tenant.id.toString())
+                    MockRestRequestMatchers.jsonPath("$.name").value(name)
                 }
         }
 
@@ -375,8 +375,8 @@ class TenantAdminControllerTest {
             mockMvc.get("/admin/tenants/name/$name")
                 .andExpect {
                     status { isNotFound() }
-                    jsonPath("$.errorCode", `is`("TENANT_NOT_FOUND"))
-                    jsonPath("$.message", `is`("Tenant not found"))
+                    jsonPath("$.errorCode", Matchers.`is`("TENANT_NOT_FOUND"))
+                    jsonPath("$.message", Matchers.`is`("Tenant not found"))
                 }
         }
 
@@ -404,11 +404,11 @@ class TenantAdminControllerTest {
             mockMvc.get("/admin/tenants")
                 .andExpect {
                     status { isOk() }
-                    jsonPath("$.length()").value(2)
-                    jsonPath("$[0].id").value(tenants[0].id.toString())
-                    jsonPath("$[0].name").value("T1")
-                    jsonPath("$[1].id").value(tenants[1].id.toString())
-                    jsonPath("$[1].name").value("T2")
+                    MockRestRequestMatchers.jsonPath("$.length()").value(2)
+                    MockRestRequestMatchers.jsonPath("$[0].id").value(tenants[0].id.toString())
+                    MockRestRequestMatchers.jsonPath("$[0].name").value("T1")
+                    MockRestRequestMatchers.jsonPath("$[1].id").value(tenants[1].id.toString())
+                    MockRestRequestMatchers.jsonPath("$[1].name").value("T2")
                 }
         }
 
