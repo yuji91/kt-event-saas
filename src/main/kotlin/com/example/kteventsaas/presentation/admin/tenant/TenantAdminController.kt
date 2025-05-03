@@ -7,6 +7,7 @@ import com.example.kteventsaas.presentation.admin.tenant.dto.TenantResponse
 import com.example.kteventsaas.presentation.common.exception.ErrorCodes
 import com.example.kteventsaas.presentation.common.exception.ErrorResponse
 import com.example.kteventsaas.presentation.common.exception.NotFoundException
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 import java.util.UUID
@@ -18,7 +19,8 @@ class TenantAdminController(
 ) {
 
     @PostMapping
-    fun createTenant(@RequestBody request: CreateTenantRequest): TenantResponse {
+    @ResponseStatus(HttpStatus.CREATED)
+    fun createTenant(@RequestBody @Valid request: CreateTenantRequest): TenantResponse {
         val tenant = tenantApplicationService.createTenant(request.name)
         return TenantResponse.from(tenant)
     }
