@@ -1,7 +1,7 @@
 # Tenant API 設計
 
 本ドキュメントは、ChatGPTで行ったTenant API設計に関するドキュメントです。  
-設計方針（ADR要点）、DDDレイヤ構成、各クラスの役割表を記載します。
+設計方針（ADR要点）、DDDレイヤ構成、各クラスの役割表、ファイルツリーを記載します。
 
 ---
 
@@ -52,3 +52,41 @@
 > これらを通じて、**JPAやDB依存の型がドメインに侵食することを防ぎ**、純粋なドメインロジックの保護を実現しています。
 
 🧩 クラス間の関係（[Mermaidクラス図](./diagrams/02_tenant-container.mmd)）
+
+📁 ファイルツリー（Tenant API）
+
+```plaintext
+src/main/kotlin/com/example/kteventsaas/
+├── application/
+│   └── tenant/
+│       └── service/
+│           └── TenantApplicationService.kt
+├── domain/
+│   └── tenant/
+│       ├── entity/
+│       │   └── Tenant.kt
+│       ├── repository/
+│       │   └── TenantRepository.kt
+│       └── valueobject/
+│           └── TenantName.kt
+├── infrastructure/
+│   └── persistence/
+│       ├── tenant/
+│       │   ├── TenantJpaRepository.kt
+│       │   ├── TenantSpringDataRepository.kt
+│       │   ├── entity/
+│       │   │   └── TenantJpaEntity.kt
+│       │   ├── mapper/
+│       │   │   └── TenantMapper.kt
+│       └── converter/
+│       │   └── TenantNameConverter.kt
+│       └── common/
+│           └── AuditableJpa.kt
+└── presentation/
+    └── admin/
+        └── tenant/
+            ├── TenantAdminController.kt
+            └── dto/
+                ├── CreateTenantRequest.kt
+                └── TenantResponse.kt
+```
