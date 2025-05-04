@@ -1,0 +1,7 @@
+graph TD
+UI[管理画面UI] --> Controller[Presentation層: TenantAdminController]
+Controller --> AppService[Application層: TenantApplicationService]
+AppService --> Domain[Domain層: Tenant, TenantName]
+AppService --> Repo[Domain層: TenantRepository]
+Repo --> Adapter[Infrastructure層: TenantJpaRepository]
+Adapter --> DB[(PostgreSQL)]
