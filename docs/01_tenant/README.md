@@ -1,6 +1,6 @@
 # Tenant API 設計
 
-本ドキュメントは、ChatGPTで行ったTenant API設計に関するドキュメントです。  
+本ドキュメントは、ChatGPTで行った Tenant API設計 に関するドキュメントです。  
 設計方針（ADR要点）、DDDレイヤ構成、各クラスの役割表、ファイルツリーを記載します。
 
 ---
@@ -30,7 +30,17 @@
 | Domain 層    | 業務ロジックの中心。Entity, ValueObject, DomainService など | `Tenant`, `TenantName`, `TenantRepository`|
 | Infrastructure 層 | 技術的実装。DBアクセス、外部API連携、リポジトリ実装、JPAエンティティ等         | `TenantJpaRepository`, `TenantEntity`     |
 
-[Tenant API 全体構成図（C4 Container）](./diagrams/01_tenant-layer-container.mmd)
+## 🧩 レイヤ構成図（APIフロー）
+
+```mermaid
+graph TD
+UI[管理画面UI] --> Controller[Presentation層: TenantAdminController]
+Controller --> AppService[Application層: TenantApplicationService]
+AppService --> Domain[Domain層: Tenant, TenantName]
+AppService --> Repo[Domain層: TenantRepository]
+Repo --> Adapter[Infrastructure層: TenantJpaRepository]
+Adapter --> DB[(PostgreSQL)]
+```
 
 📋 各レイヤの役割一覧（責務については、各ファイルに kdocs 形式で記載）
 
@@ -51,9 +61,66 @@
 > 💡補足：`TenantMapper` や `TenantNameConverter` は、ドメイン層とインフラ層の境界で役割を持つ変換コンポーネントです。  
 > これらを通じて、**JPAやDB依存の型がドメインに侵食することを防ぎ**、純粋なドメインロジックの保護を実現しています。
 
-🧩 クラス間の関係（[Mermaidクラス図](./diagrams/02_tenant-container.mmd)）
+## 🧩 クラス間の関係図
 
-📁 ファイルツリー（Tenant API）
+```mermaid
+
+graph TD
+
+subgraph TenantBC["Bounded Context: Tenant"]
+
+subgraph Tenant_WebApp["Web Application (Presentation Layer)"]
+Controller["TenantAdminController"]
+DTO["CreateTenantRequest / TenantResponse"]
+Mapper["TenantDtoMapper"]
+end
+
+subgraph Tenant_Application["Application Layer"]
+UseCase["TenantApplicationService"]
+end
+
+subgraph Tenant_Domain["Domain Layer"]
+Tenant["Tenant (Entity)"]
+TenantName["TenantName (ValueObject)"]
+DomainRepo["TenantRepository (Interface)"]
+end
+
+subgraph Tenant_Infrastructure["Infrastructure Layer"]
+JpaRepo["TenantJpaRepository (JPA Impl)"]
+Entity["TenantEntity (JPA Entity)"]
+Database["PostgreSQL (RDB)"]
+end
+
+end
+
+%% DTOを通じてHTTPリクエスト/レスポンスがやり取りされる
+DTO --> Controller
+
+%% DTO ⇄ ドメイン変換を担う（MapperはController内やServiceで使用される）
+Mapper --> Controller
+
+%% プレゼンテーション層からアプリケーション層へ処理委譲
+Controller --> UseCase
+
+%% ドメイン層のRepositoryインターフェースを呼び出す
+UseCase --> DomainRepo
+
+%% ドメイン内エンティティ/VO（ValueObject）
+DomainRepo --> Tenant
+DomainRepo --> TenantName
+
+%% インフラのJpaRepoがドメインのインターフェースを実装
+JpaRepo -. implements .-> DomainRepo
+
+%% JPAエンティティを操作して取得や永続化（CRUD）
+JpaRepo --> Entity
+
+%% エンティティはRDBにマッピングされる
+Entity --> Database
+
+```
+
+## 📁 ファイルツリー（Tenant API）
 
 ```plaintext
 src/main/kotlin/com/example/kteventsaas/
