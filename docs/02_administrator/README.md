@@ -73,6 +73,21 @@ src/main/resources/templates/admin/
 | Infrastructure | `infrastructure.persistence.admin.mapper` | `AdministratorMapper`               | Domain ↔ JPA の変換（MapStruct）             |
 | Infrastructure | `infrastructure.security`                 | `AdminSecurityConfig`               | `/admin/**` 専用の SecurityFilterChain 定義  |
 
+### 🔄 LoginResponse DTO 非導入の方針
+本ログイン処理は、  
+Thymeleaf によるサーバーサイドレンダリング UI を用いた、セッションベースのフォーム認証である。  
+この方式は、JSON形式のリクエスト・レスポンスを伴う REST API とは異なり、  
+画面遷移は認証後にテンプレートへのリダイレクトによって完結する。  
+
+よって、認証結果をクライアントに構造化された DTO（例：LoginResponse）として返却する必要はない。  
+
+### ✅ LoginResponse DTO を導入しない理由
+| 観点           | 内容                                                                          |
+| ------------ | --------------------------------------------------------------------------- |
+| UI遷移         | 認証後は `RedirectView` によりページ遷移が完了し、レスポンスにログイン結果情報を含める必要がない。                   |
+| セッション管理      | Spring Security によりセッションIDが自動的にCookieに付与されるため、トークン等を明示的に返却するAPIは存在しない。      |
+| REST APIではない | 本認証機構はSPAや外部クライアント向けのREST APIではなく、Thymeleafベースの管理画面に限定されるため、DTOレスポンスは不要である。 |
+
 ---
 
 ## ✅ 各レイヤ別ファイルの必要性と理由
