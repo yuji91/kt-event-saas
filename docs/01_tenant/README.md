@@ -30,13 +30,13 @@
 | Domain 層    | 業務ロジックの中心。Entity, ValueObject, DomainService など | `Tenant`, `TenantName`, `TenantRepository`|
 | Infrastructure 層 | 技術的実装。DBアクセス、外部API連携、リポジトリ実装、JPAエンティティ等         | `TenantJpaRepository`, `TenantEntity`     |
 
-## 🧩 レイヤ構成図（APIフロー）
+## 🧩 レイヤ構成図（簡易版）
 
 ```mermaid
 graph TD
 UI[管理画面UI] --> Controller[Presentation層: TenantAdminController]
 Controller --> AppService[Application層: TenantApplicationService]
-AppService --> Domain[Domain層: Tenant, TenantName]
+AppService --> Domain[Domain層: TenantEntity, TenantName]
 AppService --> Repo[Domain層: TenantRepository]
 Repo --> Adapter[Infrastructure層: TenantJpaRepository]
 Adapter --> DB[(PostgreSQL)]
@@ -44,27 +44,58 @@ Adapter --> DB[(PostgreSQL)]
 
 📋 各レイヤの役割一覧（責務については、各ファイルに kdocs 形式で記載）
 
-| 層              | パッケージ                                      | クラス / コンポーネント名                                   | 役割概要                                       |
-| -------------- | ------------------------------------------ | ------------------------------------------------ |--------------------------------------------|
-| Presentation   | `presentation.admin.tenant`                | TenantAdminController                            | REST APIの入口。DTOの受け取り、バリデーション、サービス呼び出し、例外処理 |
-| Presentation   | `presentation.admin.tenant.dto`            | CreateTenantRequest / TenantResponse             | 入出力DTO、バリデーションやドメイン変換を担当                   |
-| Application    | `application.tenant.service`               | TenantApplicationService                         | ユースケースを実行。ドメインとインフラ層を調停                    |
-| Domain         | `domain.tenant.entity`                     | Tenant                                           | テナントのドメインエンティティ。IDと名前を保持                   |
-| Domain         | `domain.tenant.valueobject`                | TenantName                                       | init で生成時に不変条件を検証し、不正値を排除する                |
-| Domain         | `domain.tenant.repository`                 | TenantRepository                                 | 永続化に非依存なリポジトリインターフェース                      |
-| Infrastructure | `infrastructure.persistence.tenant`        | TenantJpaRepository / TenantSpringDataRepository | Spring Data JPA実装。ドメインリポジトリを実装             |
-| Infrastructure | `infrastructure.persistence.tenant.entity` | TenantJpaEntity                                  | JPAエンティティ。DBスキーマとのマッピング                    |
-| Infrastructure | `infrastructure.persistence.tenant.mapper` | TenantMapper                                     | ドメイン ⇄ JPA の変換（MapStruct）                  |
-| Infrastructure | `infrastructure.persistence.converter`     | TenantNameConverter                              | VO ⇄ DB型の変換（JPA Converter）                 |
-| Infrastructure | `infrastructure.persistence.common`        | AuditableJpa                                     | 共通の監査情報（作成日時、更新日時など）                       |
+| 層              | パッケージ                                      | クラス / コンポーネント名                       | 役割概要                                       |
+| -------------- | ------------------------------------------ |--------------------------------------|--------------------------------------------|
+| Presentation   | `presentation.admin.tenant`                | TenantAdminController                | REST APIの入口。DTOの受け取り、バリデーション、サービス呼び出し、例外処理 |
+| Presentation   | `presentation.admin.tenant.dto`            | CreateTenantRequest / TenantResponse | 入出力DTO、バリデーションやドメイン変換を担当                   |
+| Application    | `application.tenant.service`               | TenantApplicationService             | ユースケースを実行。ドメインとインフラ層を調停                    |
+| Domain         | `domain.tenant.entity`                     | Tenant                               | テナントのドメインエンティティ。IDと名前を保持                   |
+| Domain         | `domain.tenant.valueobject`                | TenantName                           | init で生成時に不変条件を検証し、不正値を排除する                |
+| Domain         | `domain.tenant.repository`                 | TenantRepository                     | 永続化に非依存なリポジトリインターフェース                      |
+| Infrastructure | `infrastructure.persistence.tenant`        | TenantJpaRepository                  | ドメインの TenantRepository を実装するアダプター             |
+| Infrastructure | `infrastructure.persistence.tenant`        | TenantSpringDataRepository           | Spring によりクエリメソッドが自動生成されるインターフェース           |
+| Infrastructure | `infrastructure.persistence.tenant.entity` | TenantJpaEntity                      | JPAエンティティ。DBスキーマとのマッピング                    |
+| Infrastructure | `infrastructure.persistence.tenant.mapper` | TenantMapper                         | ドメイン ⇄ JPA の変換（MapStruct）                  |
+| Infrastructure | `infrastructure.persistence.converter`     | TenantNameConverter                  | VO ⇄ DB型の変換（JPA Converter）                 |
+| Infrastructure | `infrastructure.persistence.common`        | AuditableJpa                         | 共通の監査情報（作成日時、更新日時など）                       |
 
 > 💡補足：`TenantMapper` や `TenantNameConverter` は、ドメイン層とインフラ層の境界で役割を持つ変換コンポーネントです。  
 > これらを通じて、**JPAやDB依存の型がドメインに侵食することを防ぎ**、純粋なドメインロジックの保護を実現しています。
 
+## 🧩 レイヤ構成図（詳細版）
+```mermaid
+graph TD
+
+%% Presentation層
+UI[管理画面UI] --> Controller[Presentation層: TenantAdminController]
+Controller --> AppService[Application層: TenantApplicationService]
+
+%% Domain層
+AppService --> Domain[Domain層: TenantEntity, TenantName]
+AppService --> Repo[Domain層: TenantRepository]
+
+%% Infrastructure層
+Repo --> Adapter[Infrastructure層: TenantJpaRepository]
+Adapter --> SpringData[Infrastructure層: TenantSpringDataRepository]
+Adapter --> Mapper[Infrastructure層: TenantMapper]
+
+Mapper --> Domain
+Mapper --> JpaEntity[Infrastructure層: TenantJpaEntity]
+
+%% DBマッピングと実行
+SpringData --> JpaEntity
+SpringData --> Impl[Spring内部: SimpleJpaRepository]
+Impl --> EM[Spring内部: EntityManager]
+EM --> DB[(PostgreSQL)]
+
+%% Dotted edges for internal behavior
+style Impl stroke-dasharray: 5
+style EM stroke-dasharray: 5
+```
+
 ## 🧩 クラス間の関係図
 
 ```mermaid
-
 graph TD
 
 subgraph TenantBC["Bounded Context: Tenant"]
@@ -87,6 +118,7 @@ end
 
 subgraph Tenant_Infrastructure["Infrastructure Layer"]
 JpaRepo["TenantJpaRepository (JPA Impl)"]
+SpringDataRepo["TenantSpringDataRepository"]
 Entity["TenantEntity (JPA Entity)"]
 Database["PostgreSQL (RDB)"]
 end
@@ -112,8 +144,14 @@ DomainRepo --> TenantName
 %% インフラのJpaRepoがドメインのインターフェースを実装
 JpaRepo -. implements .-> DomainRepo
 
+%% JpaRepo が SpringDataRepo に委譲する構造
+JpaRepo --> SpringDataRepo
+
 %% JPAエンティティを操作して取得や永続化（CRUD）
 JpaRepo --> Entity
+
+%% Spring Data リポジトリが JPA エンティティに対して CRUD
+SpringDataRepo --> Entity
 
 %% エンティティはRDBにマッピングされる
 Entity --> Database
