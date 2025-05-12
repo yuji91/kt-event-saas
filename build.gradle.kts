@@ -42,6 +42,12 @@ dependencies {
 	// 制約アノテーションを有効化して MethodArgumentNotValidException を返すようにする
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 
+	// セッションログイン用
+	implementation("org.springframework.boot:spring-boot-starter-security")
+
+	// Thymeleaf テンプレートエンジンを追加（ "ViewResolver > TemplateEngine > HTML レンダリング" のパイプラインが構築され、フォワード／リダイレクトせずにレスポンスを返せる）
+	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+
 	// データベース関連
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("jakarta.persistence:jakarta.persistence-api:3.1.0")
