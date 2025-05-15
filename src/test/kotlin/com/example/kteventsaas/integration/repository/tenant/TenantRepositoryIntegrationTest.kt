@@ -1,4 +1,4 @@
-package com.example.kteventsaas.integration.repository
+package com.example.kteventsaas.integration.repository.tenant
 
 import com.example.kteventsaas.domain.tenant.entity.Tenant
 import com.example.kteventsaas.domain.tenant.repository.TenantRepository
