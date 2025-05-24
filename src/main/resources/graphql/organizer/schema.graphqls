@@ -1,0 +1,43 @@
+# Organizer 認証用 GraphQL スキーマ定義
+# 【役割】認証関連の入力/出力型とミューテーションを定義
+# 【責務】LoginInput, LoginPayload の型定義および認証ミューテーション(loginOrganizer, refreshOrganizerToken)を提供
+# 【補足】Spring for GraphQL が自動的に読み込むリソースパスに配置
+
+# ルートタイプの定義（空の Query を設ける）
+# 【理由】
+# - GraphQL 仕様では必ず Query ルートが必要であり、Mutation はその拡張として扱われる。
+# - IDEやスキーマバリデータが Mutation 単体の拡張を認識するには、基底となる Query 型が存在している必要がある。
+# - Spring for GraphQL がスキーマをロードする際、Query 型の有無でルート定義を検証するため、エラー防止のためにも空の Query を明示する。
+#
+#  currentOrganizer の実装により、以下不要
+#  type Query {
+#      _empty: String
+#  }
+
+type Query {
+    currentOrganizer: OrganizerInfo!
+}
+
+type OrganizerInfo {
+    email: String!
+    role: String!
+    tenantId: ID!
+}
+
+type Mutation {
+    loginOrganizer(input: LoginInput!): LoginPayload!
+    refreshOrganizerToken(token: String!): LoginPayload!
+}
+
+input LoginInput {
+    email: String!
+    password: String!
+}
+
+type LoginPayload {
+    accessToken: String!
+    refreshToken: String
+    expiresIn: Int!
+    tenantId: ID!
+    role: String!
+}
