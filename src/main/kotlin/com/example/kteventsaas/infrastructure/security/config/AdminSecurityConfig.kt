@@ -1,11 +1,11 @@
-package com.example.kteventsaas.infrastructure.security
+package com.example.kteventsaas.infrastructure.security.config
 
 import com.example.kteventsaas.application.admin.service.AdministratorAuthService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider
-import org.springframework.security.config.Customizer.withDefaults
+import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
@@ -62,7 +62,7 @@ class AdminSecurityConfig(
     fun adminSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
 
         http
-            .securityMatcher("/admin/**") // ① /admin/** だけをこのチェーンで扱う
+            .securityMatcher("/admin/**")   // ① /admin/** だけをこのチェーンで扱う
             .authorizeHttpRequests { auth ->           // ② 認可ルール
                 auth
                     // --- 許可したいものを先に書く ---
@@ -88,7 +88,7 @@ class AdminSecurityConfig(
                     .logoutUrl("/admin/logout")
                     .logoutSuccessUrl("/admin/login?logout=true")
             }
-            .csrf(withDefaults())
+            .csrf(Customizer.withDefaults())
 
         return http.build()
     }
