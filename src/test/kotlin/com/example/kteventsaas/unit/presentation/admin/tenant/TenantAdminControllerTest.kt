@@ -28,6 +28,8 @@ import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.server.ResponseStatusException
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import java.util.UUID
 
 /**
@@ -119,6 +121,8 @@ class TenantAdminControllerTest {
 
             // --- Act & Assert ---
             mockMvc.post("/admin/tenants") {
+                with(csrf())                                           // post のため CSRF トークン付与
+                with(user("admin").roles("ADMIN")) // 認証済みユーザーを模倣
                 // リクエストヘッダーに Content-Type: application/json を付与
                 // Spring Boot では JSON の入出力に MappingJackson2HttpMessageConverter（Jacksonベースのメッセージコンバータ）
                 // 省略すると Content-Type ヘッダーが空またはデフォルト（text/plain 相当）になり、JSON コンバータが選ばれない
@@ -151,6 +155,8 @@ class TenantAdminControllerTest {
 
             // --- Act: 400 を返すことだけ検証して ResultActions を取得 ---
             val result = mockMvc.post("/admin/tenants") {
+                with(csrf())                                           // post のため CSRF トークン付与
+                with(user("admin").roles("ADMIN")) // 認証済みユーザーを模倣
                 contentType = MediaType.APPLICATION_JSON
                 content     = body
             }
@@ -183,6 +189,8 @@ class TenantAdminControllerTest {
 
             // --- Act: 400 を返すことだけ検証して ResultActions を取得 ---
             val result = mockMvc.post("/admin/tenants") {
+                with(csrf())                                           // post のため CSRF トークン付与
+                with(user("admin").roles("ADMIN")) // 認証済みユーザーを模倣
                 contentType = MediaType.APPLICATION_JSON
                 content = body
             }
@@ -225,6 +233,8 @@ class TenantAdminControllerTest {
 
             // --- Act & Assert: 409 を返すことだけ検証して ResultActions を取得 ---
             val result = mockMvc.post("/admin/tenants") {
+                with(csrf())                                           // post のため CSRF トークン付与
+                with(user("admin").roles("ADMIN")) // 認証済みユーザーを模倣
                 contentType = MediaType.APPLICATION_JSON
                 content = body
             }
@@ -256,6 +266,8 @@ class TenantAdminControllerTest {
 
             // --- Act & Assert ---
             mockMvc.post("/admin/tenants") {
+                with(csrf())                                           // post のため CSRF トークン付与
+                with(user("admin").roles("ADMIN")) // 認証済みユーザーを模倣
                 contentType = MediaType.APPLICATION_JSON
                 content = body
             }.andExpect {
@@ -289,12 +301,14 @@ class TenantAdminControllerTest {
             every { tenantApplicationService.getTenant(tenantId) } returns tenant
 
             // --- Act & Assert ---
-            mockMvc.get("/admin/tenants/$tenantId")
-                .andExpect {
-                    status { isOk() }
-                    MockRestRequestMatchers.jsonPath("$.id").value(tenantId.toString())
-                    MockRestRequestMatchers.jsonPath("$.name").value(tenantName)
-                }
+            mockMvc.get("/admin/tenants/$tenantId") {
+                with(user("admin").roles("ADMIN")) // 認証済みユーザーを模倣
+            }
+            .andExpect {
+                status { isOk() }
+                MockRestRequestMatchers.jsonPath("$.id").value(tenantId.toString())
+                MockRestRequestMatchers.jsonPath("$.name").value(tenantName)
+            }
 
             // --- Verify service invocation (Mock) ---
             verify { tenantApplicationService.getTenant(tenantId) }
@@ -317,12 +331,14 @@ class TenantAdminControllerTest {
             every { tenantApplicationService.getTenant(tenantId) } returns null
 
             // --- Act & Assert ---
-            mockMvc.get("/admin/tenants/$tenantId")
-                .andExpect {
-                    status { isNotFound() }
-                    jsonPath("$.errorCode", Matchers.`is`("TENANT_NOT_FOUND"))
-                    jsonPath("$.message", Matchers.`is`("Tenant not found"))
-                }
+            mockMvc.get("/admin/tenants/$tenantId") {
+                with(user("admin").roles("ADMIN")) // 認証済みユーザーを模倣
+            }
+             .andExpect {
+                 status { isNotFound() }
+                 jsonPath("$.errorCode", Matchers.`is`("TENANT_NOT_FOUND"))
+                 jsonPath("$.message", Matchers.`is`("Tenant not found"))
+             }
 
             // --- Verify service invocation (Mock) ---
             verify { tenantApplicationService.getTenant(tenantId) }
@@ -351,12 +367,14 @@ class TenantAdminControllerTest {
             every { tenantApplicationService.getTenantByName(TenantName(name)) } returns tenant
 
             // --- Act & Assert ---
-            mockMvc.get("/admin/tenants/name/$name")
-                .andExpect {
-                    status { isOk() }
-                    MockRestRequestMatchers.jsonPath("$.id").value(tenant.id.toString())
-                    MockRestRequestMatchers.jsonPath("$.name").value(name)
-                }
+            mockMvc.get("/admin/tenants/name/$name") {
+                with(user("admin").roles("ADMIN")) // 認証済みユーザーを模倣
+            }
+            .andExpect {
+                status { isOk() }
+                MockRestRequestMatchers.jsonPath("$.id").value(tenant.id.toString())
+                MockRestRequestMatchers.jsonPath("$.name").value(name)
+            }
         }
 
 
@@ -372,12 +390,14 @@ class TenantAdminControllerTest {
             // Return dummy_data and isolate this test from external dependencies (Stub)
             every { tenantApplicationService.getTenantByName(TenantName(name)) } returns null
 
-            mockMvc.get("/admin/tenants/name/$name")
-                .andExpect {
-                    status { isNotFound() }
-                    jsonPath("$.errorCode", Matchers.`is`("TENANT_NOT_FOUND"))
-                    jsonPath("$.message", Matchers.`is`("Tenant not found"))
-                }
+            mockMvc.get("/admin/tenants/name/$name") {
+                with(user("admin").roles("ADMIN")) // 認証済みユーザーを模倣
+            }
+            .andExpect {
+                status { isNotFound() }
+                jsonPath("$.errorCode", Matchers.`is`("TENANT_NOT_FOUND"))
+                jsonPath("$.message", Matchers.`is`("Tenant not found"))
+            }
         }
 
         // endregion
@@ -401,15 +421,17 @@ class TenantAdminControllerTest {
             every { tenantApplicationService.listTenants() } returns tenants
 
             // --- Act & Assert ---
-            mockMvc.get("/admin/tenants")
-                .andExpect {
-                    status { isOk() }
-                    MockRestRequestMatchers.jsonPath("$.length()").value(2)
-                    MockRestRequestMatchers.jsonPath("$[0].id").value(tenants[0].id.toString())
-                    MockRestRequestMatchers.jsonPath("$[0].name").value("T1")
-                    MockRestRequestMatchers.jsonPath("$[1].id").value(tenants[1].id.toString())
-                    MockRestRequestMatchers.jsonPath("$[1].name").value("T2")
-                }
+            mockMvc.get("/admin/tenants") {
+                with(user("admin").roles("ADMIN")) // 認証済みユーザーを模倣
+            }
+            .andExpect {
+                status { isOk() }
+                MockRestRequestMatchers.jsonPath("$.length()").value(2)
+                MockRestRequestMatchers.jsonPath("$[0].id").value(tenants[0].id.toString())
+                MockRestRequestMatchers.jsonPath("$[0].name").value("T1")
+                MockRestRequestMatchers.jsonPath("$[1].id").value(tenants[1].id.toString())
+                MockRestRequestMatchers.jsonPath("$[1].name").value("T2")
+            }
         }
 
         // endregion
