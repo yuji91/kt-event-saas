@@ -18,6 +18,8 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Disabled
 
@@ -90,6 +92,8 @@ class TenantAdminControllerIntegrationTest {
         val body = objectMapper.writeValueAsString(request)
 
         mockMvc.post("/admin/tenants") {
+            with(csrf())                                           // post のため CSRF トークン付与
+            with(user("admin").roles("ADMIN")) // 認証済みユーザーを模倣
             contentType = MediaType.APPLICATION_JSON
             content = body
         }.andExpect {
@@ -106,6 +110,8 @@ class TenantAdminControllerIntegrationTest {
         val body = objectMapper.writeValueAsString(request)
 
         val postResult = mockMvc.post("/admin/tenants") {
+            with(csrf())                                           // post のため CSRF トークン付与
+            with(user("admin").roles("ADMIN")) // 認証済みユーザーを模倣
             contentType = MediaType.APPLICATION_JSON
             content = body
         }.andExpect {
@@ -118,13 +124,15 @@ class TenantAdminControllerIntegrationTest {
         val createdJson = postResult.response.contentAsString
         val createdId = objectMapper.readTree(createdJson).get("id").asText()
 
-        val getResult = mockMvc.get("/admin/tenants/$createdId")
-            .andExpect {
-                status { isOk() }
-                jsonPath("$.id").value(createdId)
-                jsonPath("$.name").value(name)
-                content { contentType(MediaType.APPLICATION_JSON) }
-            }.andReturn()
+        val getResult = mockMvc.get("/admin/tenants/$createdId") {
+            with(user("admin").roles("ADMIN")) // 認証済みユーザーを模倣
+        }
+        .andExpect {
+            status { isOk() }
+            jsonPath("$.id").value(createdId)
+            jsonPath("$.name").value(name)
+            content { contentType(MediaType.APPLICATION_JSON) }
+        }.andReturn()
 
         val getJson = getResult.response.contentAsString
 
@@ -145,6 +153,8 @@ class TenantAdminControllerIntegrationTest {
             val body = """{ \"name\": null }"""
 
             mockMvc.post(endpoint) {
+                with(csrf())                                           // post のため CSRF トークン付与
+                with(user("admin").roles("ADMIN")) // 認証済みユーザーを模倣
                 contentType = MediaType.APPLICATION_JSON
                 content = body
             }.andExpect {
@@ -160,6 +170,8 @@ class TenantAdminControllerIntegrationTest {
             val body = """{ \"name\": \"\" }"""
 
             mockMvc.post(endpoint) {
+                with(csrf())                                           // post のため CSRF トークン付与
+                with(user("admin").roles("ADMIN")) // 認証済みユーザーを模倣
                 contentType = MediaType.APPLICATION_JSON
                 content = body
             }.andExpect {
@@ -173,6 +185,8 @@ class TenantAdminControllerIntegrationTest {
             val body = """{ \"name\": \"   \" }"""
 
             mockMvc.post(endpoint) {
+                with(csrf())                                           // post のため CSRF トークン付与
+                with(user("admin").roles("ADMIN")) // 認証済みユーザーを模倣
                 contentType = MediaType.APPLICATION_JSON
                 content = body
             }.andExpect {
@@ -186,6 +200,8 @@ class TenantAdminControllerIntegrationTest {
             val body = """{ }"""
 
             mockMvc.post(endpoint) {
+                with(csrf())                                           // post のため CSRF トークン付与
+                with(user("admin").roles("ADMIN")) // 認証済みユーザーを模倣
                 contentType = MediaType.APPLICATION_JSON
                 content = body
             }.andExpect {
@@ -199,6 +215,8 @@ class TenantAdminControllerIntegrationTest {
             val body = """{ \"name\": 123 }"""
 
             mockMvc.post(endpoint) {
+                with(csrf())                                           // post のため CSRF トークン付与
+                with(user("admin").roles("ADMIN")) // 認証済みユーザーを模倣
                 contentType = MediaType.APPLICATION_JSON
                 content = body
             }.andExpect {
@@ -211,6 +229,8 @@ class TenantAdminControllerIntegrationTest {
             val malformedJson = """{ \"name\": \"abc\" """
 
             mockMvc.post(endpoint) {
+                with(csrf())                                           // post のため CSRF トークン付与
+                with(user("admin").roles("ADMIN")) // 認証済みユーザーを模倣
                 contentType = MediaType.APPLICATION_JSON
                 content = malformedJson
             }.andExpect {
@@ -226,6 +246,8 @@ class TenantAdminControllerIntegrationTest {
 
             // --- 1回目: 正常登録 ---
             mockMvc.post("/admin/tenants") {
+                with(csrf())                                           // post のため CSRF トークン付与
+                with(user("admin").roles("ADMIN")) // 認証済みユーザーを模倣
                 contentType = MediaType.APPLICATION_JSON
                 content = body
             }.andExpect {
@@ -234,6 +256,8 @@ class TenantAdminControllerIntegrationTest {
 
             // --- 2回目: 重複登録 ---
             mockMvc.post("/admin/tenants") {
+                with(csrf())                                           // post のため CSRF トークン付与
+                with(user("admin").roles("ADMIN")) // 認証済みユーザーを模倣
                 contentType = MediaType.APPLICATION_JSON
                 content = body
             }.andExpect {
@@ -251,6 +275,8 @@ class TenantAdminControllerIntegrationTest {
         val body = objectMapper.writeValueAsString(request)
 
         mockMvc.post("/admin/tenants") {
+            with(csrf())                                           // post のため CSRF トークン付与
+            with(user("admin").roles("ADMIN")) // 認証済みユーザーを模倣
             contentType = MediaType.APPLICATION_JSON
             content = body
         }.andExpect {
