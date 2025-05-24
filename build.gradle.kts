@@ -39,6 +39,28 @@ dependencies {
 	// OpenAPI (springdoc) - MVC用
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6")
 
+	// GraphQL (Spring for GraphQL)
+	implementation("org.springframework.boot:spring-boot-starter-graphql")
+
+    // JWT ライブラリ (JJWT)
+	implementation("io.jsonwebtoken:jjwt:0.9.1")
+
+	// Java 9 以降の JDK で従来組み込まれていた「Java EE（Jakarta EE）系の XML バインディング API（JAXB）」が標準クラスライブラリから削除された
+	// jjwt-0.9.1 の中で Base64 のエンコード／デコードにこの DatatypeConverter を直接呼んでいるため、JDK 11+＋jjwt-0.9.1 の組み合わせで NoClassDefFoundError が発生
+    //
+	// 対応として、JDK 11 以降で削除された JAXB のクラスを、外部ライブラリとして再度追加するため、以下追加する。
+	// 【追加】JAXB API とランタイム（API + 実装(Impl) を implementation）
+	implementation("javax.xml.bind:jaxb-api:2.3.1")      // .class ファイルとしての「API 定義」（インタフェースや抽象クラス）を追加
+	runtimeOnly("org.glassfish.jaxb:jaxb-runtime:2.3.1") //「実際の動作コード」（DatatypeConverter や他のバインディング処理の具象実装）を提供
+    //【補足】「API 定義」だと実装がないため、呼び出し先のクラスは「存在するけれど中身がない（NoSuchMethodError など）」状態になる。
+	// 実装（runtime）だけではコンパイル時に型が見つからない、双方揃って初めて DatatypeConverter 周りの処理が問題なく動作する
+
+	// TODO: JJWT 0.11 系の signWith(...) が渡された文字列シークレットを「Base64 として」デフォルトでデコードする問題を対処
+	// --- 新モジュール版に置き換え (JJWT) ---
+    //	implementation("io.jsonwebtoken:jjwt-api:0.11.5")
+    //	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
+    //	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
+
 	// 制約アノテーションを有効化して MethodArgumentNotValidException を返すようにする
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 
@@ -73,6 +95,8 @@ dependencies {
 	testImplementation("org.testcontainers:postgresql")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 	testImplementation("io.mockk:mockk:1.13.5")
+	testImplementation("org.springframework.graphql:spring-graphql-test")
+	testImplementation("org.springframework.security:spring-security-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
 //  Spring AI (将来的に導入予定)
