@@ -116,6 +116,9 @@ class OrganizerAuthService(
      */
     @Transactional(readOnly = true)
     fun resolveCurrentOrganizer(): Organizer {
+        val auth = SecurityContextHolder.getContext().authentication
+        println("🔐 resolver sees auth: $auth")
+
         // 認証情報自体がないケースを弾く
         val authentication: Authentication = SecurityContextHolder.getContext().authentication
             ?: throw AuthenticationCredentialsNotFoundException("認証情報がありません")

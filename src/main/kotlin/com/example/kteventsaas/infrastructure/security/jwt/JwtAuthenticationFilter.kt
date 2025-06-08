@@ -43,6 +43,7 @@ class JwtAuthenticationFilter(
             println("🛡️ JWT Token received: $token")
 
             if (tokenProvider.validateToken(token)) {
+                println("🛡️ token validated OK")
                 val claims = tokenProvider.getClaims(token)
                 val username = claims.subject
                 val role = claims["role"] as String
