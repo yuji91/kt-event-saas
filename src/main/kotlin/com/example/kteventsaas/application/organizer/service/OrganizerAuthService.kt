@@ -7,8 +7,8 @@ import com.example.kteventsaas.domain.organizer.repository.OrganizerRepository
 import com.example.kteventsaas.infrastructure.security.jwt.JwtTokenProvider
 import com.example.kteventsaas.presentation.common.exception.ErrorCodes
 import com.example.kteventsaas.presentation.common.exception.NotFoundException
-import com.example.kteventsaas.presentation.organizer.auth.dto.LoginInput
-import com.example.kteventsaas.presentation.organizer.auth.dto.LoginPayload
+import com.example.kteventsaas.presentation.organizer.auth.dto.OrganizerLoginInput
+import com.example.kteventsaas.presentation.organizer.auth.dto.OrganizerLoginPayload
 import io.jsonwebtoken.Claims
 import org.springframework.security.authentication.AnonymousAuthenticationToken
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -47,7 +47,7 @@ class OrganizerAuthService(
     // TODO: interface TokenProvider を定義して注入させると、テスト時にモック差し替えができる利点がある
 ) {
     @Transactional(readOnly = true)
-    fun loginOrganizer(input: LoginInput): LoginPayload {
+    fun loginOrganizer(input: OrganizerLoginInput): OrganizerLoginPayload {
         // 1. メールで Organizer を取得
         val organizer = repository.findByEmail(EmailAddress(input.email))
             ?: throw BadCredentialsException("Invalid credentials")
@@ -63,7 +63,7 @@ class OrganizerAuthService(
         val expiresIn    = jwtIssuer.expiresInSeconds()
 
         // 4. レスポンス組み立て
-        return LoginPayload(
+        return OrganizerLoginPayload(
             accessToken  = accessToken,
             refreshToken = refreshToken,
             expiresIn    = expiresIn,
@@ -73,7 +73,7 @@ class OrganizerAuthService(
     }
 
     @Transactional(readOnly = true)
-    fun refreshToken(token: String): LoginPayload {
+    fun refreshToken(token: String): OrganizerLoginPayload {
         // 1. 署名検証＆期限チェック
         if (!jwtTokenProvider.validateToken(token)) {
             throw IllegalArgumentException("リフレッシュトークンが無効です") // TODO: InvalidTokenException を定義
@@ -98,7 +98,7 @@ class OrganizerAuthService(
         val expiresIn       = jwtIssuer.expiresInSeconds()
 
         // 5. GraphQL の返却型（LoginPayload）に詰めて返却
-        return LoginPayload(
+        return OrganizerLoginPayload(
             accessToken  = newAccessToken,
             refreshToken = newRefreshToken,
             expiresIn    = expiresIn,

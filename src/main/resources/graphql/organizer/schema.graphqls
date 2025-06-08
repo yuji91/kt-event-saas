@@ -14,7 +14,7 @@
 #      _empty: String
 #  }
 
-type Query {
+extend type Query {
     currentOrganizer: OrganizerInfo!
 }
 
@@ -24,17 +24,17 @@ type OrganizerInfo {
     tenantId: ID!
 }
 
-type Mutation {
-    loginOrganizer(input: LoginInput!): LoginPayload!
-    refreshOrganizerToken(token: String!): LoginPayload!
+extend type Mutation {
+    loginOrganizer(input: OrganizerLoginInput!): OrganizerLoginPayload!
+    refreshOrganizerToken(token: String!): OrganizerLoginPayload!
 }
 
-input LoginInput {
+input OrganizerLoginInput {
     email: String!
     password: String!
 }
 
-type LoginPayload {
+type OrganizerLoginPayload {
     accessToken: String!
     refreshToken: String
     expiresIn: Int!

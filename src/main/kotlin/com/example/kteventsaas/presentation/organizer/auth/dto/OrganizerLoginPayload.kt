@@ -18,7 +18,7 @@ import java.util.UUID
  *   スキーマと実装の対応を明確化している。
  * - パスワードや内部秘密情報は含めず、トークンと最小限の認証情報のみを保持。
  */
-data class LoginPayload(
+data class OrganizerLoginPayload(
     val accessToken: String,
     val refreshToken: String?,
     val expiresIn: Int,

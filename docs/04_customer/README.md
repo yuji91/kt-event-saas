@@ -43,12 +43,12 @@
 ## 📜 スキーマ構成（SDL）
 
 ```graphql
-input LoginInput {
+input CustomerLoginInput {
   email: String!
   password: String!
 }
 
-type LoginPayload {
+type CustomerLoginPayload {
   accessToken: String!
   refreshToken: String
   expiresIn: Int!
@@ -63,8 +63,8 @@ type CustomerInfo {
 }
 
 type Mutation {
-  loginCustomer(input: LoginInput!): LoginPayload!
-  refreshCustomerToken(token: String!): LoginPayload!
+  loginCustomer(input: CustomerLoginInput!): CustomerLoginPayload!
+  refreshCustomerToken(token: String!): CustomerLoginPayload!
 }
 
 type Query {
@@ -80,7 +80,7 @@ type Query {
 
 * `loginCustomer(input: LoginInput!)` 実行
 * 入力値を `CustomerAuthService` で認証
-* `JwtIssuer` が JWT を発行し、`LoginPayload` を返却
+* `JwtIssuer` が JWT を発行し、`CustomerLoginPayload` を返却
 
 ### 2. トークンの利用
 
@@ -102,7 +102,7 @@ type Query {
 graph TD
 
 UI[SPA / GraphQL Client] --> Resolver[Presentation層: CustomerAuthQuery/MutationResolver]
-Resolver --> DTO[DTO: LoginInput, LoginPayload, CustomerInfo]
+Resolver --> DTO[DTO: CustomerLoginInput, CustomerLoginPayload, CustomerInfo]
 
 Resolver --> AuthService[Application層: CustomerAuthService]
 AuthService --> JwtIssuer[JwtIssuer - JWT発行]
@@ -129,7 +129,7 @@ SecurityConfig[CustomerSecurityConfig] --> FilterChain[SecurityFilterChain - /cu
 | レイヤ             | クラス例                                                        | 主な責務                                     |
 | --------------- | ----------------------------------------------------------- | ---------------------------------------- |
 | Presentation層   | `CustomerAuthMutationResolver`, `CustomerAuthQueryResolver` | GraphQLミューテーション・クエリの受付。DTOとの橋渡し          |
-| Presentation層   | `LoginInput`, `LoginPayload`, `CustomerInfo`                | GraphQLスキーマと1:1対応する入力・出力用のDTOクラス         |
+| Presentation層   | `CustomerLoginInput`, `CustomerLoginPayload`, `CustomerInfo`| GraphQLスキーマと1:1対応する入力・出力用のDTOクラス         |
 | Application層    | `CustomerAuthService`                                       | ログイン、リフレッシュ、現在ユーザーの解決とJWT発行ユースケースの統括     |
 | Application層    | `JwtIssuer`, `JwtPayloadFactory`                            | ドメインからJWTペイロード生成、トークン文字列の生成              |
 | Domain層         | `Customer`, `EmailAddress`, `CustomerRole`                  | ユーザー情報・バリューオブジェクト・役割定義のドメインモデル群          |
@@ -143,19 +143,19 @@ SecurityConfig[CustomerSecurityConfig] --> FilterChain[SecurityFilterChain - /cu
 
 ## ✅ 各レイヤ別ファイルの必要性と理由
 
-| 層               | クラス名                                                    | 必要性分類    | 理由                                                 |
-| --------------- | ------------------------------------------------------- | -------- | -------------------------------------------------- |
-| Presentation層   | `CustomerAuthMutationResolver`                          | ⭐️ 必須    | `loginCustomer`, `refreshCustomerToken` ミューテーション受付 |
-| Presentation層   | `CustomerAuthQueryResolver`                             | ⭐️ 必須    | `currentCustomer` クエリの処理を担当                        |
-| Presentation層   | `LoginInput`, `LoginPayload`, `CustomerInfo`            | ⭐️ 必須    | GraphQLスキーマと1:1対応したDTO定義。型安全なデータ受渡し                |
-| Application層    | `CustomerAuthService`                                   | ⭐️ 必須    | 認証処理の中心ロジックを担うアプリケーションサービス                         |
-| Application層    | `JwtIssuer`, `JwtPayloadFactory`                        | ⭐️ 必須    | トークンの発行・有効期限の管理、ドメインモデルからのクレーム生成                   |
-| Domain層         | `Customer`, `EmailAddress`, `CustomerRole`              | ⭐️ 必須    | 認証・認可に必要な属性を持つ純粋なドメインモデル                           |
-| Domain層         | `CustomerRepository`                                    | 🧩 DDD構成 | ドメイン層とインフラ層の橋渡しを抽象化し、永続化手段の非依存性を保つ                 |
-| Infrastructure層 | `CustomerJpaEntity`, `CustomerMapper`                   | ⭐️ 必須    | JPAエンティティとドメインモデルの相互変換を担う。DB構造とドメインを分離             |
-| Infrastructure層 | `CustomerJpaRepository`, `CustomerSpringDataRepository` | ⭐️ 必須    | Spring Data JPAによるDB操作とドメインリポジトリの実装                |
-| Infrastructure層 | `JwtTokenProvider`, `JwtAuthenticationFilter`           | ⭐️ 必須    | JWTの生成・検証、およびリクエストごとの認証処理（SecurityContextの設定）      |
-| Infrastructure層 | `CustomerSecurityConfig`                                | ⭐️ 必須    | FilterChainの設定とJWTフィルタの適用ロジック                      |
+| 層               | クラス名                                                         | 必要性分類    | 理由                                                 |
+| --------------- |--------------------------------------------------------------| -------- | -------------------------------------------------- |
+| Presentation層   | `CustomerAuthMutationResolver`                               | ⭐️ 必須    | `loginCustomer`, `refreshCustomerToken` ミューテーション受付 |
+| Presentation層   | `CustomerAuthQueryResolver`                                  | ⭐️ 必須    | `currentCustomer` クエリの処理を担当                        |
+| Presentation層   | `CustomerLoginInput`, `CustomerLoginPayload`, `CustomerInfo` | ⭐️ 必須    | GraphQLスキーマと1:1対応したDTO定義。型安全なデータ受渡し                |
+| Application層    | `CustomerAuthService`                                        | ⭐️ 必須    | 認証処理の中心ロジックを担うアプリケーションサービス                         |
+| Application層    | `JwtIssuer`, `JwtPayloadFactory`                             | ⭐️ 必須    | トークンの発行・有効期限の管理、ドメインモデルからのクレーム生成                   |
+| Domain層         | `Customer`, `EmailAddress`, `CustomerRole`                   | ⭐️ 必須    | 認証・認可に必要な属性を持つ純粋なドメインモデル                           |
+| Domain層         | `CustomerRepository`                                         | 🧩 DDD構成 | ドメイン層とインフラ層の橋渡しを抽象化し、永続化手段の非依存性を保つ                 |
+| Infrastructure層 | `CustomerJpaEntity`, `CustomerMapper`                        | ⭐️ 必須    | JPAエンティティとドメインモデルの相互変換を担う。DB構造とドメインを分離             |
+| Infrastructure層 | `CustomerJpaRepository`, `CustomerSpringDataRepository`      | ⭐️ 必須    | Spring Data JPAによるDB操作とドメインリポジトリの実装                |
+| Infrastructure層 | `JwtTokenProvider`, `JwtAuthenticationFilter`                | ⭐️ 必須    | JWTの生成・検証、およびリクエストごとの認証処理（SecurityContextの設定）      |
+| Infrastructure層 | `CustomerSecurityConfig`                                     | ⭐️ 必須    | FilterChainの設定とJWTフィルタの適用ロジック                      |
 
 ---
 
@@ -201,12 +201,12 @@ classDiagram
         + currentCustomer(): CustomerInfo
     }
 
-    class LoginInput {
+    class CustomerLoginInput {
         + String email
         + String password
     }
 
-    class LoginPayload {
+    class CustomerLoginPayload {
         + String accessToken
         + String? refreshToken
         + Int expiresIn
@@ -257,8 +257,8 @@ classDiagram
     CustomerAuthService --> Customer
     CustomerAuthService --> JwtIssuer
     CustomerAuthMutationResolver --> CustomerAuthService
-    CustomerAuthMutationResolver --> LoginInput
-    CustomerAuthMutationResolver --> LoginPayload
+    CustomerAuthMutationResolver --> CustomerLoginInput
+    CustomerAuthMutationResolver --> CustomerLoginPayload
     CustomerAuthQueryResolver --> CustomerAuthService
     CustomerAuthQueryResolver --> CustomerInfo
     CustomerRepository <|.. CustomerJpaRepository
@@ -281,8 +281,8 @@ src/main/kotlin/com/example/kteventsaas/
 │   ├── CustomerAuthQueryResolver.kt
 │   ├── CustomerAuthMutationResolver.kt
 │   └── dto/
-│       ├── LoginInput.kt
-│       ├── LoginPayload.kt
+│       ├── CustomerLoginInput.kt
+│       ├── CustomerLoginPayload.kt
 │       └── CustomerInfo.kt
 ├── application/customer/service/
 │   ├── CustomerAuthService.kt
@@ -317,6 +317,6 @@ src/main/kotlin/com/example/kteventsaas/
 | 実装  | `/customer/graphql` の JWT SecurityFilterChain 設定  | Customer | Organizer と分離            | 🔄   |
 | 実装  | `loginCustomer`, `refreshCustomerToken` ミューテーション  | Customer | 認証処理 + JWT発行             | 🔄   |
 | 実装  | `currentCustomer` クエリの実装                          | Customer | ログイン中ユーザー情報取得            | 🔄   |
-| 実装  | DTO: `LoginInput`, `LoginPayload`, `CustomerInfo` | Customer | SDLと完全一致させる              | 🔄   |
+| 実装  | DTO: `CustomerLoginInput`, `CustomerLoginPayload`, `CustomerInfo` | Customer | SDLと完全一致させる              | 🔄   |
 | テスト | JWT認証成功時に `currentCustomer` が取得できる                | Customer | トークン認証                   | 🔄   |
 | テスト | 不正 or 期限切れトークンでアクセス不可を確認                          | Customer | `401 Unauthorized` になること | 🔄   |
