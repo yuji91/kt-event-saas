@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component
  *   `tokenType` クレームによる区別のみに留めている。
  *   実運用を見据え、将来的には有効期限・署名キー・保存方針などを分離する拡張余地がある。
  */
-@Component
+@Component("organizerJwtIssuer")
 class JwtIssuer(
     private val payloadFactory: JwtPayloadFactory,
     private val tokenProvider: JwtTokenProvider

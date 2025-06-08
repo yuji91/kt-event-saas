@@ -36,8 +36,8 @@
 
 | クラス名           | 用途                                          |
 | -------------- | ------------------------------------------- |
-| `LoginInput`   | ログイン要求（email, password）                     |
-| `LoginPayload` | レスポンス（accessToken, refreshToken, expiresIn） |
+| `OrganizerLoginInput`   | ログイン要求（email, password）                     |
+| `OrganizerLoginPayload` | レスポンス（accessToken, refreshToken, expiresIn） |
 
 ### 採用理由
 
@@ -68,12 +68,12 @@
 ## 📜 スキーマ構成 (SDL)
 
 ```graphql
-input LoginInput {
+input OrganizerLoginInput {
   email: String!
   password: String!
 }
 
-type LoginPayload {
+type OrganizerLoginPayload {
   accessToken: String!
   refreshToken: String
   expiresIn: Int!
@@ -82,8 +82,8 @@ type LoginPayload {
 }
 
 type Mutation {
-  loginOrganizer(input: LoginInput!): LoginPayload!
-  refreshToken(token: String!): LoginPayload!
+  loginOrganizer(input: OrganizerLoginInput!): OrganizerLoginPayload!
+  refreshToken(token: String!): OrganizerLoginPayload!
 }
 ```
 ポイント: クラス名を GraphQL SDL と完全一致させ、graphql-kotlin や Apollo Codegen との連携がシームレスに。
@@ -105,7 +105,7 @@ graph TD
 
 %% Presentation層
 UI[SPA / GraphQL Client] --> Resolver[Presentation層: OrganizerAuthQuery/MutationResolver]
-Resolver --> DTO[DTO: LoginInput, Payload, OrganizerInfo]
+Resolver --> DTO[DTO: OrganizerLoginInput, OrganizerLoginPayload, OrganizerInfo]
 
 %% Application層
 Resolver --> AuthService[Application層: OrganizerAuthService]
@@ -133,7 +133,7 @@ SecurityConfig[OrganizerSecurityConfig] --> FilterChain[SecurityFilterChain - /o
 | レイヤ             | パッケージ例                                        | クラス / コンポーネント名                                | 役割概要                                          |
 | --------------- | --------------------------------------------- | --------------------------------------------- |-----------------------------------------------|
 | Presentation層   | `presentation.organizer.auth`                 | `OrganizerAuthQuery/MutationResolver`         | GraphQL の認証関連リゾルバ（ログイン、トークン再発行、認証状態確認など）      |
-| Presentation層   | `presentation.organizer.auth.dto`             | `LoginInput`, `LoginPayload`                  | GraphQL での入力・出力 DTO（後続の JWT レスポンス含む）          |
+| Presentation層   | `presentation.organizer.auth.dto`             | `OrganizerLoginInput`, `OrganizerLoginPayload`| GraphQL での入力・出力 DTO（後続の JWT レスポンス含む）          |
 | Presentation層   | `presentation.organizer.auth.dto`             | `OrganizerInfo`                               | `currentOrganizer` クエリのレスポンス型。認証済ユーザーの属性を返却   |
 | Application層    | `application.organizer.service`               | `OrganizerAuthService`                        | Organizer の検索、認証判定、および UserDetails への変換を担う    |
 | Application層    | `application.organizer.service.jwt`           | `JwtIssuer`, `JwtPayloadFactory`              | 認証済みユーザーに対してトークンを発行。認可クレームの整形も行う              |
@@ -147,21 +147,21 @@ SecurityConfig[OrganizerSecurityConfig] --> FilterChain[SecurityFilterChain - /o
 
 ## ✅ 各レイヤ別ファイルの必要性と理由
 
-| 層               | クラス / コンポーネント名                              | 必要性分類    | 理由                                                      |
-| --------------- |---------------------------------------------| -------- | ------------------------------------------------------- |
-| Presentation層   | `OrganizerAuthQuery/MutationResolver`       | ⭐️ 必須    | GraphQL 経由での認証関連リクエスト（ログイン、再発行、状態確認など）を受け取り、認証ユースケースに委譲する役割               |
-| Presentation層   | `LoginInput`, `LoginPayload`                | ⭐️ 必須    | GraphQLでの入力（メール・パスワード）と出力（JWTトークン）を構造化してやり取りするため        |
-| Presentation層   | `OrganizerInfo`                             | ⭐️ 必須    | currentOrganizer クエリのレスポンスとして、ログイン済ユーザーの情報を提供するため        |
-| Application層    | `OrganizerAuthService`                      | ⭐️ 必須    | ユーザー検索・認証処理を担い、Spring Security 連携および JWT生成ロジックを制御       |
-| Application層    | `JwtIssuer`, `JwtPayloadFactory`            | ⭐️ 必須    | ロール・テナント・サブジェクトなどの情報をJWTとして発行するためのユーティリティ               |
-| Domain層         | `Organizer`                                 | ⭐️ 必須    | メール・ロール・テナントIDなど認証・認可に必要な属性を定義したドメインエンティティ              |
-| Domain層         | `EmailAddress`, `OrganizerRole`             | 🧩 型安全志向 | 値の整合性（空文字・メール形式等）を保証するためのValueObject。ロールの定義も列挙体で管理      |
-| Domain層         | `OrganizerRepository`                       | 🧩 DDD構成 | 永続化技術に依存しない設計とし、アプリケーション層からドメインに依存をとどめるため               |
-| Infrastructure層 | `OrganizerJpaRepository`, `OrganizerMapper` | ⭐️ 必須    | JPA + Spring Data により永続化処理を担う具象実装と、Entity ↔ Domainの変換責務 |
-| Infrastructure層 | `OrganizerJpaEntity`                        | ⭐️ 必須    | テーブルとの対応関係を明示し、UUID, Email, Role などのDBカラムにマッピング         |
-| Infrastructure層 | `JwtTokenProvider`                          | ⭐️ 必須    | JWTトークンの発行・検証を担う中核コンポーネント                               |
-| Infrastructure層 | `JwtAuthenticationFilter`                   | ⭐️ 必須    | HTTPリクエストにおけるAuthorizationヘッダを検査し、認可処理を行うフィルタ           |
-| Infrastructure層 | `OrganizerSecurityConfig`                   | ⭐️ 必須    | `/organizer/**` のリクエストに対するSecurityFilterChainの設定        |
+| 層               | クラス / コンポーネント名                                 | 必要性分類    | 理由                                                      |
+| --------------- |------------------------------------------------| -------- | ------------------------------------------------------- |
+| Presentation層   | `OrganizerAuthQuery/MutationResolver`          | ⭐️ 必須    | GraphQL 経由での認証関連リクエスト（ログイン、再発行、状態確認など）を受け取り、認証ユースケースに委譲する役割               |
+| Presentation層   | `OrganizerLoginInput`, `OrganizerLoginPayload` | ⭐️ 必須    | GraphQLでの入力（メール・パスワード）と出力（JWTトークン）を構造化してやり取りするため        |
+| Presentation層   | `OrganizerInfo`                                | ⭐️ 必須    | currentOrganizer クエリのレスポンスとして、ログイン済ユーザーの情報を提供するため        |
+| Application層    | `OrganizerAuthService`                         | ⭐️ 必須    | ユーザー検索・認証処理を担い、Spring Security 連携および JWT生成ロジックを制御       |
+| Application層    | `JwtIssuer`, `JwtPayloadFactory`               | ⭐️ 必須    | ロール・テナント・サブジェクトなどの情報をJWTとして発行するためのユーティリティ               |
+| Domain層         | `Organizer`                                    | ⭐️ 必須    | メール・ロール・テナントIDなど認証・認可に必要な属性を定義したドメインエンティティ              |
+| Domain層         | `EmailAddress`, `OrganizerRole`                | 🧩 型安全志向 | 値の整合性（空文字・メール形式等）を保証するためのValueObject。ロールの定義も列挙体で管理      |
+| Domain層         | `OrganizerRepository`                          | 🧩 DDD構成 | 永続化技術に依存しない設計とし、アプリケーション層からドメインに依存をとどめるため               |
+| Infrastructure層 | `OrganizerJpaRepository`, `OrganizerMapper`    | ⭐️ 必須    | JPA + Spring Data により永続化処理を担う具象実装と、Entity ↔ Domainの変換責務 |
+| Infrastructure層 | `OrganizerJpaEntity`                           | ⭐️ 必須    | テーブルとの対応関係を明示し、UUID, Email, Role などのDBカラムにマッピング         |
+| Infrastructure層 | `JwtTokenProvider`                             | ⭐️ 必須    | JWTトークンの発行・検証を担う中核コンポーネント                               |
+| Infrastructure層 | `JwtAuthenticationFilter`                      | ⭐️ 必須    | HTTPリクエストにおけるAuthorizationヘッダを検査し、認可処理を行うフィルタ           |
+| Infrastructure層 | `OrganizerSecurityConfig`                      | ⭐️ 必須    | `/organizer/**` のリクエストに対するSecurityFilterChainの設定        |
 
 ## 🧩 クラス間の関係
 
@@ -205,12 +205,12 @@ classDiagram
         + currentOrganizer(): OrganizerInfo
     }
 
-    class LoginInput {
+    class OrganizerLoginInput {
         + String email
         + String password
     }
 
-    class LoginPayload {
+    class OrganizerLoginPayload {
         + String accessToken
         + String? refreshToken
         + Int expiresIn
@@ -261,8 +261,8 @@ classDiagram
     OrganizerAuthService --> Organizer
     OrganizerAuthService --> JwtIssuer
     OrganizerAuthMutationResolver --> OrganizerAuthService
-    OrganizerAuthMutationResolver --> LoginInput
-    OrganizerAuthMutationResolver --> LoginPayload
+    OrganizerAuthMutationResolver --> OrganizerLoginInput
+    OrganizerAuthMutationResolver --> OrganizerLoginPayload
     OrganizerAuthQueryResolver --> OrganizerAuthService
     OrganizerAuthQueryResolver --> OrganizerInfo
     OrganizerRepository <|.. OrganizerJpaRepository
@@ -302,10 +302,10 @@ JWT認証を前提とした場合、REST APIと比べてGraphQLを採用する�
 
 ### 1. ログインフェーズ
 
-1. **クライアント** が GraphQL ミューテーション `loginOrganizer(input: LoginInput)` を実行（ペイロード: `{ email, password }`）。
+1. **クライアント** が GraphQL ミューテーション `loginOrganizer(input: OrganizerLoginInput)` を実行（ペイロード: `{ email, password }`）。
 2. **Resolver** (`OrganizerLoginResolver`) で `OrganizerAuthService.loginOrganizer(input)` を呼び出し。
 3. **アプリケーションサービス** (`OrganizerAuthService`) がリポジトリで Organizer を検索し、パスワードを検証。
-4. **JWT 発行** (`JwtIssuer`／`JwtPayloadFactory`／`JwtTokenProvider`) により、`accessToken`・`refreshToken`・`expiresIn`・`tenantId`・`role` を生成し、`LoginPayload` として返却。
+4. **JWT 発行** (`JwtIssuer`／`JwtPayloadFactory`／`JwtTokenProvider`) により、`accessToken`・`refreshToken`・`expiresIn`・`tenantId`・`role` を生成し、`OrganizerLoginPayload` として返却。
 
 ### 2. クライアント保管フェーズ
 
@@ -396,8 +396,8 @@ src/main/kotlin/com/example/kteventsaas/
 │           ├── OrganizerAuthQueryesolver.kt
 │           ├── OrganizerAuthMutationResolver.kt
 │           └── dto/
-│               ├── LoginInput.kt
-│               ├── LoginPayload.kt
+│               ├── OrganizerLoginInput.kt
+│               ├── OrganizerLoginPayload.kt
 │               └── OrganizerInfo.kt
 ├── application/
 │   └── organizer/
@@ -441,16 +441,16 @@ src/main/kotlin/com/example/kteventsaas/
 ## ✅ v2.0.0 完了チェックリスト（Organizer 認証機構）
 
 | 区分   | チェック項目                                                             | 対象ドメイン    | 備考                                      | 対応状況 |
-| ---- | ------------------------------------------------------------------ | --------- | --------------------------------------- | ---- |
-| 実装   | `/organizer/graphql` に対する `SecurityFilterChain` の構築                | Organizer | JWT 認証フィルターと URL パス単位の設定                | 🔄   |
+| ---- |--------------------------------------------------------------------| --------- | --------------------------------------- | ---- |
+| 実装   | `/organizer/graphql` に対する `SecurityFilterChain` の構築             | Organizer | JWT 認証フィルターと URL パス単位の設定                | 🔄   |
 | 実装   | `OrganizerAuthMutationResolver.loginOrganizer` の実装                 | Organizer | Email + Password で JWT 発行               | 🔄   |
 | 実装   | `OrganizerAuthMutationResolver.refreshOrganizerToken` の実装          | Organizer | 有効なリフレッシュトークンから再発行                      | 🔄   |
 | 実装   | `JwtIssuer`, `JwtPayloadFactory`, `JwtTokenProvider` の構成           | Organizer | トークンの発行・有効期限・ペイロード組み立て                  | 🔄   |
-| 実装   | `JwtAuthenticationFilter` による Authorization ヘッダの検証                 | Organizer | アクセストークン付きリクエストの認証                      | 🔄   |
+| 実装   | `JwtAuthenticationFilter` による Authorization ヘッダの検証             | Organizer | アクセストークン付きリクエストの認証                      | 🔄   |
 | 実装   | `OrganizerAuthService.resolveCurrentOrganizer()` の追加               | Organizer | ログイン中の Organizer を SecurityContext から復元 | 🔄   |
 | 実装   | **`OrganizerAuthQueryResolver.currentOrganizer` クエリの追加（JWT 保護付き）** | Organizer | トークンがない／不正な場合はアクセス拒否                    | 🔄   |
-| スキーマ | GraphQL スキーマに `currentOrganizer: OrganizerInfo!` を定義               | Organizer | SDL に明示的に定義し、型の一貫性を確保                   | 🔄   |
-| DTO  | `LoginInput`, `LoginPayload`, `OrganizerInfo` の定義                  | Organizer | GraphQL スキーマと 1:1 で対応させる DTO            | 🔄   |
-| テスト  | `loginOrganizer` 実行でアクセストークンが返ること                                  | Organizer | 正常系ログインの自動テスト                           | 🔄   |
-| テスト  | 有効なアクセストークン付きで `currentOrganizer` が成功すること                          | Organizer | 認証情報を元にログイン中ユーザーを取得                     | 🔄   |
-| テスト  | トークンなし／期限切れ／不正トークンで `currentOrganizer` にアクセスできないこと                 | Organizer | `401 Unauthorized` になることを確認             | 🔄   |
+| スキーマ | GraphQL スキーマに `currentOrganizer: OrganizerInfo!` を定義                | Organizer | SDL に明示的に定義し、型の一貫性を確保                   | 🔄   |
+| DTO  | `OrganizerLoginInput`, `OrganizerLoginPayload`, `OrganizerInfo` の定義 | Organizer | GraphQL スキーマと 1:1 で対応させる DTO            | 🔄   |
+| テスト  | `loginOrganizer` 実行でアクセストークンが返ること                              | Organizer | 正常系ログインの自動テスト                           | 🔄   |
+| テスト  | 有効なアクセストークン付きで `currentOrganizer` が成功すること                   | Organizer | 認証情報を元にログイン中ユーザーを取得                     | 🔄   |
+| テスト  | トークンなし／期限切れ／不正トークンで `currentOrganizer` にアクセスできないこと    | Organizer | `401 Unauthorized` になることを確認             | 🔄   |

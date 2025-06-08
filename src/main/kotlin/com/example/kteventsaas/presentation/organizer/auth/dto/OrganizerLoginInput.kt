@@ -19,7 +19,7 @@ import jakarta.validation.constraints.Size
  * - この DTO は Controller（Resolver）でドメインの認証用オブジェクトへ変換する前提で設計。
  * - ビジネスルール（認可チェックやロックアウトなど）はアプリケーション/ドメイン層で担う。
  */
-data class LoginInput(
+data class OrganizerLoginInput(
     @field:NotBlank(message = "Email must not be blank")
     @field:Email(message = "Invalid email format")
     @field:Size(max = 255, message = "Email must be 255 characters or less")

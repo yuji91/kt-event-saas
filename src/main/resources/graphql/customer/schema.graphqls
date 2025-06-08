@@ -1,0 +1,37 @@
+# Customer 認証用 GraphQL スキーマ定義
+# 【役割】認証関連の入力/出力型とミューテーションを定義
+# 【責務】LoginInput, LoginPayload の型定義および認証ミューテーション(loginCustomer, refreshCustomerToken)を提供
+# 【補足】Spring for GraphQL が自動的に読み込むリソースパスに配置し、Gradleでの同期が必要
+
+# ルートタイプの定義（Query を明示）
+# 【理由】
+# - GraphQL 仕様上、少なくとも Query 型の定義が必要。
+# - currentCustomer 実装済みのため、空の Query 型は不要。
+
+extend type Query {
+    currentCustomer: CustomerInfo!
+}
+
+type CustomerInfo {
+    email: String!
+    role: String!
+    tenantId: ID!
+}
+
+extend type Mutation {
+    loginCustomer(input: CustomerLoginInput!): CustomerLoginPayload!
+    refreshCustomerToken(token: String!): CustomerLoginPayload!
+}
+
+input CustomerLoginInput {
+    email: String!
+    password: String!
+}
+
+type CustomerLoginPayload {
+    accessToken: String!
+    refreshToken: String
+    expiresIn: Int!
+    tenantId: ID!
+    role: String!
+}

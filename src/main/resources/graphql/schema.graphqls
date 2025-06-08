@@ -1,0 +1,19 @@
+# ===============================
+# ✅ GraphQL スキーマ共通の土台定義
+# ===============================
+#
+# Spring GraphQL では、複数のスキーマファイル（e.g. organizer, customer）において
+# `extend type Query`, `extend type Mutation` を使ってドメインごとに定義を分割する場合でも、
+# それらの拡張元となるベース型（type Query / Mutation）を "1回だけ" 定義する必要があります。
+#
+# 本ファイルでは、空の `type Query`, `type Mutation` を定義し、
+# 各モジュール（organizer, customer）のスキーマがそれを `extend` する構成としています。
+#
+# 例：
+# - organizer/schema.graphqls → `extend type Query`, `extend type Mutation`
+# - customer/schema.graphqls → `extend type Query`, `extend type Mutation`
+#
+# これにより、スキーマ構成の責務分離を保ちつつ、起動時の統合エラーを防ぐことができます。
+#
+type Query
+type Mutation

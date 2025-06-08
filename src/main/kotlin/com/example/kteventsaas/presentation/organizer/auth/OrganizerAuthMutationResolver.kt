@@ -1,7 +1,7 @@
 package com.example.kteventsaas.presentation.organizer.auth
 
-import com.example.kteventsaas.presentation.organizer.auth.dto.LoginInput
-import com.example.kteventsaas.presentation.organizer.auth.dto.LoginPayload
+import com.example.kteventsaas.presentation.organizer.auth.dto.OrganizerLoginInput
+import com.example.kteventsaas.presentation.organizer.auth.dto.OrganizerLoginPayload
 import com.example.kteventsaas.application.organizer.service.OrganizerAuthService
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
@@ -32,12 +32,12 @@ class OrganizerAuthMutationResolver(
 ) {
 
     @MutationMapping
-    fun loginOrganizer(@Argument input: LoginInput): LoginPayload {
+    fun loginOrganizer(@Argument input: OrganizerLoginInput): OrganizerLoginPayload {
         return authService.loginOrganizer(input)
     }
 
     @MutationMapping
-    fun refreshOrganizerToken(@Argument token: String): LoginPayload {
+    fun refreshOrganizerToken(@Argument token: String): OrganizerLoginPayload {
         return authService.refreshToken(token)
     }
 }
