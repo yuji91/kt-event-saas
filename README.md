@@ -1,11 +1,73 @@
-```shell
-cp src/main/resources/application.example.properties src/main/resources/application.properties
+# マルチテナント型 イベント管理 SaaS アプリケーション（Kotlin/Spring/DDD/GraphQL）
 
-# for flyway DB_USER and DB_PASSWORD
-CREATE ROLE secret WITH LOGIN PASSWORD 'your_db_password';
-GRANT ALL PRIVILEGES ON DATABASE postgres TO secret;
+## 🎯 このアプリケーションについて
 
-# for flyway migration
-export FLYWAY_USER=secret
-export FLYWAY_PASSWORD=your_db_password
-```
+標準的な BtoB Saas アプリケーションの構成を想定して、 複数の認証ユーザーをテナントごとに分離管理できる構成を実現
+
+ユーザー区分は以下に分け、それぞれに認証・認可処理を実装
+- Administrator（管理者）：管理画面から全体のユーザーを制御（例：無効化処理）
+- Organizer（イベント主催者）：イベント作成・集計を行い、テナント単位での運営を担当
+- Customer（イベント参加者）：参加したいイベントを検索、チケット購入で決済処理を行う
+
+Kotlin の型安全性を活かし、拡張性と堅牢性を重視したバックエンドを設計  
+※ 非同期処理（Coroutines）についても追加予定
+
+---
+
+## 🔧 技術スタックと設計思想
+
+| 技術 | 採用理由 |
+|------|----------|
+| Kotlin / Spring Boot | 型安全・非同期処理に強く、モダンな業務系バックエンドに適応 |
+| PostgreSQL + RLS | マルチテナント構成において安全なデータ分離が可能 |
+| GraphQL | 柔軟なクエリ設計とクライアント主導型のデータ取得が可能 |
+| Testcontainers | 本番に近い環境での統合テストを容易に実現 |
+| Thymeleaf | 軽量なサーバーサイドテンプレートで素早くUI構築 |
+| DDD構成 | 責務分離を意識した拡張性・保守性重視の設計方針 |
+
+---
+
+## ✅ 対応済みの機能
+
+- PostgreSQL の RLS 設定によるマルチテナント対応
+- DDD設計に基づくファイル構成の設計と設計ドキュメントの整備
+- 各ファイルへの責務・役割コメントの付与
+- 認証基盤の構成設計とドキュメント化
+- REST API によるセッションベースのログイン
+- GraphQL による JWT 認証ログイン
+- Mock・Stubを用いたユニットテストの作成
+- Testcontainers を用いた統合テストの作成
+- Thymeleaf による管理者向け HTML テンプレート構築
+
+| 項目 | 概要                                                   |
+|------|------------------------------------------------------|
+| 🏗 DDD設計 | ValueObject・ドメイン・アプリケーション・インフラ層を明確に分離 |
+| 🗃 マルチテナント対応 | PostgreSQLのRLSとJWT + スレッドローカルによるテナント分離を実装            |
+| 🔐 認証・認可 | REST（セッション）と GraphQL（JWT）の両方に対応したログイン機能              |
+| 🧪 テスト | Mock/StubによるUnit Testと、Testcontainersを用いた統合テストを整備    |
+| 🌐 管理画面（WIP） | Thymeleafでの管理者向けUI（HTMLテンプレート、ログイン機能のみ作成）            |
+| 📄 ドキュメント | 各層の設計意図・認証基盤の設計をREADMEやコメントで可視化済み                    |
+
+---
+
+## 🚧 今後の開発予定（対応中）
+
+- TypeScript + React + urql によるフロントエンド実装（まずは認証画面）
+- 主催者による Event 作成・購買状況のダッシュボード
+- Stripe API によるチケット購入・決済処理
+- 管理画面からのユーザー無効化等、Admin機能の実装
+- Coroutines や Flow など、Kotlin らしい非同期機構の導入
+
+---
+
+## 📐 設計と記録の工夫（ドキュメント駆動開発）
+
+本プロジェクトでは、実装前に設計意図を明文化し、ドキュメント駆動で進行
+
+- 各ファイルについては【役割】や【責務】などのコメントで設計意図を明文化し、プロジェクト内での認知齟齬を防止
+
+- 各種テーブル、ドメインや認証機能について、DDD構成や追加ファイルは設計書を作成してから実装
+  - [設計書一覧](https://github.com/yuji91/kt-event-saas/tree/main/docs)
+
+- テストコードも、単体、統合レベルでディレクトリを分割し、設計書を作成しながら実装
+  - [単体テスト設計書](https://github.com/yuji91/kt-event-saas/tree/main/src/test/kotlin/com/example/kteventsaas/unit)
