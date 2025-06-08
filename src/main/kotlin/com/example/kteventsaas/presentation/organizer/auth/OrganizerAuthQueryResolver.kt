@@ -1,6 +1,7 @@
 package com.example.kteventsaas.presentation.organizer.auth
 
 import com.example.kteventsaas.application.organizer.service.OrganizerAuthService
+import com.example.kteventsaas.presentation.common.security.RequireRole.requireCurrentRole
 import com.example.kteventsaas.presentation.organizer.auth.dto.OrganizerInfo
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.stereotype.Controller
@@ -33,6 +34,8 @@ class OrganizerAuthQueryResolver(
 
     @QueryMapping
     fun currentOrganizer(): OrganizerInfo {
+        requireCurrentRole("OWNER")
+
         val organizer = authService.resolveCurrentOrganizer()
         return OrganizerInfo(
             email = organizer.email.value,
