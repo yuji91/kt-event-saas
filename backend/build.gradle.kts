@@ -111,10 +111,11 @@ dependencyManagement {
 	}
 }
 
+// TODO: 公開時の環境構築の負担を軽減するため、本来はNGだが直接指定する
 flyway {
 	url = "jdbc:postgresql://localhost:5432/postgres"
-	user = System.getenv("FLYWAY_USER")
-	password = System.getenv("FLYWAY_PASS")
+	user = "myuser"
+	password = "secret"
 	locations = arrayOf("filesystem:src/main/resources/db/migration")
 	cleanDisabled = false
 }
