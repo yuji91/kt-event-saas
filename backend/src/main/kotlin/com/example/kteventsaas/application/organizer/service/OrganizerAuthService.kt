@@ -64,11 +64,12 @@ class OrganizerAuthService(
 
         // 4. レスポンス組み立て
         return OrganizerLoginPayload(
-            accessToken  = accessToken,
+            accessToken = accessToken,
             refreshToken = refreshToken,
-            expiresIn    = expiresIn,
-            tenantId     = organizer.tenantId,
-            role         = organizer.role.name
+            expiresIn = expiresIn,
+            tenantId = organizer.tenantId,
+            email = organizer.email,
+            role = organizer.role.name
         )
     }
 
@@ -99,11 +100,12 @@ class OrganizerAuthService(
 
         // 5. GraphQL の返却型（LoginPayload）に詰めて返却
         return OrganizerLoginPayload(
-            accessToken  = newAccessToken,
+            accessToken = newAccessToken,
             refreshToken = newRefreshToken,
-            expiresIn    = expiresIn,
-            tenantId     = organizer.tenantId,
-            role         = organizer.role.name
+            expiresIn = expiresIn,
+            tenantId = organizer.tenantId,
+            email = organizer.email,
+            role = organizer.role.name
         )
     }
 
