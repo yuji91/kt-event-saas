@@ -1,11 +1,10 @@
-import { useMutation } from "urql";
-import { LOGIN_ORGANIZER } from "../graphql/loginOrganizer.gql";
+import { useLoginOrganizerMutation } from '../graphql/generated';
 import { LoginForm } from "../components/LoginForm";
 import { useAuth } from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
 export const Login = () => {
-  const [, login] = useMutation(LOGIN_ORGANIZER);
+  const [, login] = useLoginOrganizerMutation();
   const { login: saveToken } = useAuth();
   const navigate = useNavigate();
 
@@ -16,7 +15,7 @@ export const Login = () => {
     if (data?.accessToken) {
       saveToken({
         accessToken: data.accessToken,
-        refreshToken: data.refreshToken,
+        refreshToken: data.refreshToken ?? undefined,
         tenantId: data.tenantId,
         email: data.email,
         role: data.role,
