@@ -31,6 +31,15 @@ npm install react-router-dom
 
 # ディレクトリ構成の作成
 mkdir -p src/{graphql,components,hooks,lib,pages,router,theme}
+　
+# graphql-codegen で型定義を自動生成するため実行
+npm install -D \
+  @graphql-codegen/cli \                         # Codegen CLI本体
+  @graphql-codegen/typescript \                  # GraphQLスキーマ → TypeScript型定義
+  @graphql-codegen/typescript-operations \       # クエリ・ミューテーション → 型化
+  @graphql-codegen/typescript-urql               # urql用の useQuery/useMutation フック自動生成
+
+npx graphql-codegen
 ```
 
 ## ⚙️ Node.js 環境の統一と Volta 採用理由
@@ -49,3 +58,9 @@ mkdir -p src/{graphql,components,hooks,lib,pages,router,theme}
 - `Node.js 20`は **最新の LTS（Long-Term Support）版** であり、長期運用に適している
 - `Vite`, `React 18+`, `urql`, `Chakra UI` など、主要ライブラリが`Node 20 `で十分に検証・対応済
 - `--experimental-fetch` や `--watch` の正式化など、**開発者体験が向上**
+
+### GraphQL Code Generator を使用する理由
+- `src/graphql/generated.ts`が生成される
+- `.graphql` ファイルから型定義・クエリ関数（useQuery/useMutation）を自動生成する
+- 手動での型定義やgql定義ファイルの管理が不要となり、開発効率と保守性が向上
+
