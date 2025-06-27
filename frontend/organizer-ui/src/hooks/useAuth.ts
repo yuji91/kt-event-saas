@@ -4,6 +4,7 @@ type UserInfo = {
   accessToken: string;
   refreshToken?: string;
   tenantId: string;
+  email: string;
   role: string;
 };
 

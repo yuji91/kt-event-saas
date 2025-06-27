@@ -18,6 +18,7 @@ export const Login = () => {
         accessToken: data.accessToken,
         refreshToken: data.refreshToken,
         tenantId: data.tenantId,
+        email: data.email,
         role: data.role,
       });
       navigate("/dashboard");

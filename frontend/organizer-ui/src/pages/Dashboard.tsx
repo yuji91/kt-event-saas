@@ -14,6 +14,7 @@ export const Dashboard = () => {
   return (
       <Box p={6}>
         <Heading>Welcome</Heading>
+        <Text>Email: {user?.email}</Text>
         <Text>Role: {user?.role}</Text>
         <Text>Tenant ID: {user?.tenantId}</Text>
 

@@ -7,6 +7,7 @@ export const LOGIN_ORGANIZER = gql`
       refreshToken
       expiresIn
       tenantId
+      email
       role
     }
   }
