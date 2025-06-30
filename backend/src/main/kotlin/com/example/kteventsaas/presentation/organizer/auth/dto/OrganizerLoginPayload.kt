@@ -1,5 +1,6 @@
 package com.example.kteventsaas.presentation.organizer.auth.dto
 
+import com.example.kteventsaas.domain.common.valueobject.EmailAddress
 import java.util.UUID
 
 /**
@@ -23,5 +24,6 @@ data class OrganizerLoginPayload(
     val refreshToken: String?,
     val expiresIn: Int,
     val tenantId: UUID,
+    val email: EmailAddress,
     val role: String
 )
